@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { MessageCircle } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const navLinks = [
@@ -11,9 +14,11 @@ const navLinks = [
 ];
 
 export function SiteHeader() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[var(--brand-navy)]/96 shadow-sm backdrop-blur-xl">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-3">
           <Image
             src="/davids-temple-logo-white.png"
@@ -27,20 +32,34 @@ export function SiteHeader() {
             David&apos;s Temple App
           </span>
         </Link>
-        <nav className="hidden items-center gap-6 text-sm text-white/80 md:flex">
-          {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="hover:text-white">
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <Link href="/ask">
-          <Button size="sm">
-            <MessageCircle className="h-4 w-4" />
-            Ask ask.dt
-          </Button>
-        </Link>
+        <Button
+          type="button"
+          variant="light"
+          size="sm"
+          className="h-10 w-10 px-0"
+          aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={isOpen}
+          onClick={() => setIsOpen((current) => !current)}
+        >
+          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
       </div>
+      {isOpen ? (
+        <nav className="border-t border-white/10 bg-[var(--brand-navy)] px-4 py-3 sm:px-6 lg:px-8">
+          <div className="mx-auto grid max-w-6xl gap-2">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-2xl px-4 py-3 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white"
+                onClick={() => setIsOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </nav>
+      ) : null}
     </header>
   );
 }
