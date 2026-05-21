@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, Church, MessageCircle } from "lucide-react";
+import { CalendarDays, MessageCircle } from "lucide-react";
 import { ChatPanel } from "@/components/assistant/chat-panel";
 import { ResourceCard } from "@/components/resources/resource-card";
 import { Button } from "@/components/ui/button";
@@ -46,10 +46,6 @@ export default function Home() {
         </div>
         <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:px-6 md:grid-cols-[1fr_0.86fr] md:items-center lg:px-8 lg:py-14">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white">
-              <Church className="h-4 w-4" />
-              davidstemple.app
-            </div>
             <div className="space-y-5">
               <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-white sm:text-6xl">
                 Ask. Find. Stay connected.
