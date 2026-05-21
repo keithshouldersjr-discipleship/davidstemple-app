@@ -3,16 +3,20 @@ import { ArrowRight, CalendarDays, MessageCircle } from "lucide-react";
 import { ChatPanel } from "@/components/assistant/chat-panel";
 import { ResourceCard } from "@/components/resources/resource-card";
 import { Button } from "@/components/ui/button";
-import { events, resources } from "@/lib/mock-data";
+import { getEvents } from "@/lib/data";
+import { resources } from "@/lib/mock-data";
 import type { Event } from "@/lib/types";
+
+export const revalidate = 300;
 
 function parseEventDate(event: Event) {
   const parsed = new Date(`${event.date} 12:00:00`);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-function getEventsWithinDays(days: number) {
-  const today = new Date("2026-05-21T00:00:00");
+function getEventsWithinDays(events: Event[], days: number) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const endDate = new Date(today);
   endDate.setDate(today.getDate() + days);
 
@@ -33,9 +37,10 @@ function formatDay(date: Date) {
   return new Intl.DateTimeFormat("en-US", { day: "2-digit" }).format(date);
 }
 
-export default function Home() {
+export default async function Home() {
+  const events = await getEvents();
   const featuredResources = resources.slice(0, 6);
-  const upcomingEvents = getEventsWithinDays(90);
+  const upcomingEvents = getEventsWithinDays(events, 90);
 
   return (
     <main>

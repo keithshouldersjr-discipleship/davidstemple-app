@@ -1,7 +1,11 @@
 import { EventCard } from "@/components/events/event-card";
-import { events } from "@/lib/mock-data";
+import { getEvents } from "@/lib/data";
 
-export default function EventsPage() {
+export const revalidate = 300;
+
+export default async function EventsPage() {
+  const events = await getEvents();
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8 max-w-3xl space-y-3">

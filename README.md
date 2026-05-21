@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# David's Temple App
 
-## Getting Started
+A simple digital ministry hub for David's Temple Missionary Baptist Church.
 
-First, run the development server:
+## Local Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app will use mock data until Supabase environment variables are added.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Supabase Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a Supabase project.
+2. Open the Supabase SQL Editor.
+3. Run the SQL in `supabase/schema.sql`.
+4. Copy `.env.example` to `.env.local`.
+5. Add your Supabase project URL and anon key:
 
-## Learn More
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
-To learn more about Next.js, take a look at the following resources:
+6. Restart the local development server.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Supabase Tables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The first Supabase version uses two public read tables:
 
-## Deploy on Vercel
+- `events`: feeds the homepage event preview and `/events`
+- `church_info`: feeds ask.dt knowledge-base answers
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The app falls back to `lib/mock-data.ts` if Supabase is not configured or if a read fails.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Vercel Environment Variables
+
+In Vercel, add the same variables under:
+
+Project Settings → Environment Variables
+
+After adding them, redeploy the project so production can read from Supabase.
+
+## Production Build
+
+```bash
+npm run lint
+npm run build
+```
