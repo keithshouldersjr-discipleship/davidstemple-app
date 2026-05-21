@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, MessageCircle } from "lucide-react";
+import { ArrowRight, CalendarDays, MessageCircle } from "lucide-react";
 import { ChatPanel } from "@/components/assistant/chat-panel";
 import { ResourceCard } from "@/components/resources/resource-card";
 import { Button } from "@/components/ui/button";
@@ -84,17 +84,25 @@ export default function Home() {
         </div>
         <div className="overflow-hidden rounded-3xl border border-[var(--brand-border)] bg-white shadow-sm shadow-slate-900/5">
           <div className="border-b border-[var(--brand-border)] bg-[var(--brand-soft)] px-5 py-4">
-            <div className="flex items-center gap-3 text-[var(--brand-navy)]">
-              <CalendarDays className="h-5 w-5 text-[var(--brand-burgundy)]" />
-              <p className="font-semibold">Calendar preview</p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3 text-[var(--brand-navy)]">
+                <CalendarDays className="h-5 w-5 text-[var(--brand-burgundy)]" />
+                <p className="font-semibold">Calendar preview</p>
+              </div>
+              <Link href="/events">
+                <Button variant="secondary" size="sm" className="w-full sm:w-auto">
+                  View full calendar
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           </div>
-          <div className="grid gap-0 divide-y divide-[var(--brand-border)]">
+          <div className="max-h-[26rem] overflow-y-auto overscroll-contain scroll-smooth divide-y divide-[var(--brand-border)]">
             {upcomingEvents.map(({ event, date }) => (
               <Link
                 key={event.id}
                 href="/events"
-                className="grid grid-cols-[4.5rem_1fr] gap-4 p-4 transition hover:bg-[var(--brand-soft)] sm:grid-cols-[5.25rem_1fr_auto] sm:items-center"
+                className="grid min-h-24 grid-cols-[4.5rem_1fr] gap-4 p-4 transition hover:bg-[var(--brand-soft)] sm:grid-cols-[5.25rem_1fr_auto] sm:items-center"
               >
                 <div className="rounded-2xl border border-[var(--brand-burgundy)]/15 bg-[var(--brand-burgundy-soft)] px-3 py-2 text-center">
                   <p className="text-xs font-bold uppercase tracking-wide text-[var(--brand-burgundy)]">
