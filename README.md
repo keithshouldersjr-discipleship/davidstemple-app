@@ -28,10 +28,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 ## Supabase Tables
 
-The first Supabase version uses two public read tables:
+The first Supabase version uses three public read tables:
 
 - `events`: feeds the homepage event preview and `/events`
 - `church_info`: feeds ask.dt knowledge-base answers
+- `ministry_contacts`: feeds `/serve` and ministry contact answers in ask.dt
+
+If you already ran `supabase/schema.sql` before the Serve page was added, run
+`supabase/ministry-contacts.sql` in the Supabase SQL Editor to add the new table
+and starter ministry contact content.
 
 The app falls back to `lib/mock-data.ts` if Supabase is not configured or if a read fails.
 

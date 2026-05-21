@@ -1,10 +1,15 @@
-import { churchInfo as mockChurchInfo, events as mockEvents } from "@/lib/mock-data";
+import {
+  churchInfo as mockChurchInfo,
+  events as mockEvents,
+  ministryContacts as mockMinistryContacts,
+} from "@/lib/mock-data";
 import {
   createSupabaseServerClient,
   type SupabaseChurchInfoRow,
   type SupabaseEventRow,
+  type SupabaseMinistryContactRow,
 } from "@/lib/supabase";
-import type { ChurchInfo, Event } from "@/lib/types";
+import type { ChurchInfo, Event, MinistryContact } from "@/lib/types";
 
 function formatEventDate(date: string) {
   const parsed = new Date(`${date}T12:00:00`);
@@ -79,6 +84,54 @@ export async function getChurchInfo(): Promise<ChurchInfo[]> {
     answer: item.answer,
     sourceUrl: item.source_url ?? undefined,
     lastUpdated: item.last_updated,
+  }));
+}
+
+function toMinistryCategory(category: string): MinistryContact["category"] {
+  const allowedCategories: MinistryContact["category"][] = [
+    "Discipleship",
+    "Care",
+    "Worship",
+    "Hospitality",
+    "Media",
+    "Youth",
+    "Men",
+    "Women",
+  ];
+
+  return allowedCategories.includes(category as MinistryContact["category"])
+    ? (category as MinistryContact["category"])
+    : "Care";
+}
+
+export async function getMinistryContacts(): Promise<MinistryContact[]> {
+  const supabase = createSupabaseServerClient();
+
+  if (!supabase) {
+    return mockMinistryContacts;
+  }
+
+  const { data, error } = await supabase
+    .from("ministry_contacts")
+    .select("id,ministry_name,leader_name,phone,description,category,is_active,sort_order")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("ministry_name", { ascending: true });
+
+  if (error || !data) {
+    console.error("Unable to load Supabase ministry contacts", error);
+    return mockMinistryContacts;
+  }
+
+  return (data as SupabaseMinistryContactRow[]).map((contact) => ({
+    id: contact.id,
+    ministryName: contact.ministry_name,
+    leaderName: contact.leader_name,
+    phone: contact.phone,
+    description: contact.description ?? undefined,
+    category: toMinistryCategory(contact.category),
+    isActive: contact.is_active,
+    sortOrder: contact.sort_order,
   }));
 }
 

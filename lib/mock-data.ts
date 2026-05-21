@@ -1,4 +1,4 @@
-import type { Announcement, ChurchInfo, Event, Resource } from "@/lib/types";
+import type { Announcement, ChurchInfo, Event, MinistryContact, Resource } from "@/lib/types";
 
 export const ASK_DT_SYSTEM_INSTRUCTION =
   "You are ask.dt, the official information assistant for David's Temple Missionary Baptist Church. Answer clearly, warmly, and briefly. Use only approved church information. Do not invent details about events, times, ministries, giving, or church policies. If you do not know the answer, say that you do not have that information yet and direct the user to contact the church office or check the official church resources.";
@@ -39,7 +39,7 @@ export const resources: Resource[] = [
     title: "Serve at David's Temple",
     description: "Explore opportunities to use your gifts and support the work of ministry.",
     category: "Serve",
-    url: "/resources#serve",
+    url: "/serve",
     icon: "HeartHandshake",
     isActive: true,
     sortOrder: 4,
@@ -372,6 +372,79 @@ export const churchInfo: ChurchInfo[] = [
     answer:
       "For now, contact the church office so the care team can receive your request.",
     lastUpdated: "2026-05-21",
+  },
+];
+
+export const ministryContacts: MinistryContact[] = [
+  {
+    id: "mens-ministry",
+    ministryName: "Men's Ministry",
+    leaderName: "Maurice Pryor",
+    phone: "256-658-6494",
+    description: "Connect with men growing in faith, fellowship, and service.",
+    category: "Men",
+    isActive: true,
+    sortOrder: 1,
+  },
+  {
+    id: "womens-ministry",
+    ministryName: "Women's Ministry",
+    leaderName: "Shellia Battles",
+    phone: "256-651-5458",
+    description: "Connect with women serving, encouraging, and growing together.",
+    category: "Women",
+    isActive: true,
+    sortOrder: 2,
+  },
+  {
+    id: "christian-education",
+    ministryName: "Christian Education",
+    leaderName: "Rev. Donald Wicks",
+    phone: "901-598-3828",
+    description: "Support teaching, learning, and discipleship opportunities.",
+    category: "Discipleship",
+    isActive: true,
+    sortOrder: 3,
+  },
+  {
+    id: "youth-ministry",
+    ministryName: "Youth Ministry",
+    leaderName: "Nicole Andrews",
+    phone: "256-804-9331",
+    description: "Serve young people as they grow in faith and community.",
+    category: "Youth",
+    isActive: true,
+    sortOrder: 4,
+  },
+  {
+    id: "media-ministry",
+    ministryName: "Media Ministry",
+    leaderName: "Maurice Pryor",
+    phone: "256-658-6494",
+    description: "Help support worship, communication, and digital ministry.",
+    category: "Media",
+    isActive: true,
+    sortOrder: 5,
+  },
+  {
+    id: "ushers-ministry",
+    ministryName: "Ushers Ministry",
+    leaderName: "Tara Lucas",
+    phone: "256-431-1648",
+    description: "Welcome worshipers and help create a hospitable worship experience.",
+    category: "Hospitality",
+    isActive: true,
+    sortOrder: 6,
+  },
+  {
+    id: "choir",
+    ministryName: "Choir",
+    leaderName: "Antonio Woodruff",
+    phone: "256-951-3038",
+    description: "Serve through music and help lead the church in worship.",
+    category: "Worship",
+    isActive: true,
+    sortOrder: 7,
   },
 ];
 

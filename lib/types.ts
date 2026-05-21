@@ -45,6 +45,17 @@ export type Event = {
   registrationUrl?: string;
 };
 
+export type MinistryContact = {
+  id: string;
+  ministryName: string;
+  leaderName: string;
+  phone: string;
+  description?: string;
+  category: "Discipleship" | "Care" | "Worship" | "Hospitality" | "Media" | "Youth" | "Men" | "Women";
+  isActive: boolean;
+  sortOrder: number;
+};
+
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";

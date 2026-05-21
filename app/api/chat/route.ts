@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getChurchInfo, getUpcomingEventsForAssistant } from "@/lib/data";
+import { getChurchInfo, getMinistryContacts, getUpcomingEventsForAssistant } from "@/lib/data";
 import { ASK_DT_SYSTEM_INSTRUCTION, getMockAssistantResponse } from "@/lib/mock-data";
-import type { ChurchInfo } from "@/lib/types";
+import type { ChurchInfo, MinistryContact } from "@/lib/types";
 
 function scoreChurchInfoMatch(message: string, item: ChurchInfo) {
   const words = message
@@ -9,6 +9,17 @@ function scoreChurchInfoMatch(message: string, item: ChurchInfo) {
     .split(/\W+/)
     .filter((word) => word.length > 2);
   const haystack = `${item.topic} ${item.question} ${item.answer}`.toLowerCase();
+
+  return words.reduce((score, word) => (haystack.includes(word) ? score + 1 : score), 0);
+}
+
+function scoreMinistryContactMatch(message: string, contact: MinistryContact) {
+  const words = message
+    .toLowerCase()
+    .split(/\W+/)
+    .filter((word) => word.length > 2);
+  const haystack =
+    `${contact.ministryName} ${contact.leaderName} ${contact.category} ${contact.description ?? ""}`.toLowerCase();
 
   return words.reduce((score, word) => (haystack.includes(word) ? score + 1 : score), 0);
 }
@@ -24,6 +35,32 @@ async function getAssistantResponse(message: string) {
 
     if (eventSummary) {
       return `The next events listed are ${eventSummary}. You can view the full calendar on the Events page.`;
+    }
+  }
+
+  if (
+    normalized.includes("serve") ||
+    normalized.includes("ministry") ||
+    normalized.includes("contact") ||
+    normalized.includes("choir") ||
+    normalized.includes("usher")
+  ) {
+    const ministryContacts = await getMinistryContacts();
+    const bestContact = ministryContacts
+      .map((contact) => ({ contact, score: scoreMinistryContactMatch(message, contact) }))
+      .sort((a, b) => b.score - a.score)[0];
+
+    if (bestContact && bestContact.score > 0) {
+      return `${bestContact.contact.ministryName} is connected with ${bestContact.contact.leaderName}. You can call or text ${bestContact.contact.phone}. You can also visit the Serve page for the full ministry contact list.`;
+    }
+
+    if (ministryContacts.length > 0) {
+      const contactSummary = ministryContacts
+        .slice(0, 4)
+        .map((contact) => contact.ministryName)
+        .join(", ");
+
+      return `You can visit the Serve page to find ministry contacts. Some listed areas include ${contactSummary}.`;
     }
   }
 

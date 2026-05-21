@@ -19,6 +19,17 @@ export type SupabaseChurchInfoRow = {
   last_updated: string;
 };
 
+export type SupabaseMinistryContactRow = {
+  id: string;
+  ministry_name: string;
+  leader_name: string;
+  phone: string;
+  description: string | null;
+  category: string;
+  is_active: boolean;
+  sort_order: number;
+};
+
 export function isSupabaseConfigured() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
