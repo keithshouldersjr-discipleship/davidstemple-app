@@ -56,8 +56,8 @@ export default async function Home() {
                 Ask. Find. Stay connected.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-white/80">
-                A simple digital hub for David&apos;s Temple members, visitors, and ministry
-                leaders.
+                A simple digital hub for David&apos;s Temple members, visitors,
+                and ministry leaders.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -83,9 +83,6 @@ export default async function Home() {
               Upcoming at David&apos;s Temple
             </h2>
           </div>
-          <Link href="/events" className="hidden text-sm font-medium text-[var(--brand-burgundy)] sm:inline-flex">
-            View full calendar
-          </Link>
         </div>
         <div className="overflow-hidden rounded-3xl border border-[var(--brand-border)] bg-white shadow-sm shadow-slate-900/5">
           <div className="border-b border-[var(--brand-border)] bg-[var(--brand-soft)] px-5 py-4">
@@ -95,7 +92,11 @@ export default async function Home() {
                 <p className="font-semibold">Calendar preview</p>
               </div>
               <Link href="/events">
-                <Button variant="secondary" size="sm" className="w-full sm:w-auto">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   View full calendar
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -118,7 +119,9 @@ export default async function Home() {
                   </p>
                 </div>
                 <div>
-                  <p className="font-semibold text-[var(--brand-navy)]">{event.title}</p>
+                  <p className="font-semibold text-[var(--brand-navy)]">
+                    {event.title}
+                  </p>
                   <p className="mt-1 text-sm leading-6 text-[var(--brand-muted)]">
                     {event.time} · {event.location}
                   </p>
@@ -142,7 +145,10 @@ export default async function Home() {
               Resources at a glance
             </h2>
           </div>
-          <Link href="/resources" className="hidden text-sm font-medium text-[var(--brand-burgundy)] sm:inline-flex">
+          <Link
+            href="/resources"
+            className="hidden text-sm font-medium text-[var(--brand-burgundy)] sm:inline-flex"
+          >
             View all resources
           </Link>
         </div>
