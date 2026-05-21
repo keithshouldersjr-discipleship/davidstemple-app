@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     siteName: "David's Temple App",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "David's Temple App - Ask. Find. Stay connected.",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title: "David's Temple App",
     description:
       "Ask. Find. Stay connected with David's Temple Missionary Baptist Church.",
-    images: ["/opengraph-image"],
+    images: ["/og-image.png"],
   },
 };
 
