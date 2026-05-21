@@ -21,7 +21,7 @@ export function SiteHeader() {
             width={3600}
             height={3600}
             priority
-            className="h-10 w-36 object-cover object-[center_62%] sm:w-40"
+            className="h-12 w-28 object-contain sm:h-14 sm:w-32"
           />
           <span className="hidden text-base font-semibold tracking-wide text-white sm:inline">
             David&apos;s Temple App

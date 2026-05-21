@@ -26,7 +26,7 @@ export default function Home() {
               width={3600}
               height={3600}
               priority
-              className="h-18 w-64 object-cover object-[center_62%] sm:h-20 sm:w-80"
+              className="h-32 w-52 object-contain sm:h-40 sm:w-64"
             />
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white">
               <Church className="h-4 w-4" />

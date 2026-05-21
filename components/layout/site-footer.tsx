@@ -18,7 +18,7 @@ export function SiteFooter() {
             alt="David's Temple Missionary Baptist Church"
             width={3600}
             height={3600}
-            className="h-12 w-40 object-cover object-[center_62%] sm:w-48"
+            className="h-16 w-28 object-contain sm:h-20 sm:w-36"
           />
           <div>
             <p className="font-semibold text-[var(--brand-navy)]">
