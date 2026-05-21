@@ -37,7 +37,7 @@ export function SiteHeader() {
           type="button"
           variant="light"
           size="sm"
-          className="h-10 w-10 px-0"
+          className="h-10 w-10 px-0 !text-white"
           aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={isOpen}
           onClick={() => setIsOpen((current) => !current)}
@@ -46,13 +46,13 @@ export function SiteHeader() {
         </Button>
       </div>
       {isOpen ? (
-        <nav className="border-t border-white/10 bg-[var(--brand-navy)] px-4 py-3 sm:px-6 lg:px-8">
+        <nav className="border-t border-white/10 bg-[var(--brand-navy)] px-4 py-3 text-white sm:px-6 lg:px-8">
           <div className="mx-auto grid max-w-6xl gap-2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-2xl px-4 py-3 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white"
+                className="rounded-2xl px-4 py-3 text-base font-medium !text-white hover:bg-white/10"
                 onClick={() => setIsOpen(false)}
               >
                 {link.label}
