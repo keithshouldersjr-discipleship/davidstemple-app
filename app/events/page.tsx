@@ -1,0 +1,24 @@
+import { EventCard } from "@/components/events/event-card";
+import { events } from "@/lib/mock-data";
+
+export default function EventsPage() {
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mb-8 max-w-3xl space-y-3">
+        <p className="text-sm font-medium uppercase tracking-[0.22em] text-[var(--brand-burgundy)]">
+          Events
+        </p>
+        <h1 className="text-4xl font-semibold text-[var(--brand-navy)]">Upcoming church events</h1>
+        <p className="text-lg leading-8 text-[var(--brand-muted)]">
+          A simple view of upcoming gatherings, classes, and ministry moments at
+          David&apos;s Temple.
+        </p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {events.map((event) => (
+          <EventCard key={event.id} event={event} />
+        ))}
+      </div>
+    </main>
+  );
+}
