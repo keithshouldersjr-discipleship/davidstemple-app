@@ -1,7 +1,16 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Download, Loader2, Lock, Plus, Search, ShieldCheck } from "lucide-react";
+import {
+  Download,
+  Grid3X3,
+  Loader2,
+  Lock,
+  Plus,
+  Search,
+  ShieldCheck,
+  SquarePen,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -101,6 +110,7 @@ export function MemberDirectoryDashboard() {
   const [deaconGroup, setDeaconGroup] = useState("all");
   const [form, setForm] = useState<MemberFormState>(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDirectoryOnly, setIsDirectoryOnly] = useState(false);
 
   const deaconGroups = useMemo(
     () =>
@@ -238,6 +248,14 @@ export function MemberDirectoryDashboard() {
     setIsSaving(false);
   }
 
+  function handleEditMember(member: MemberProfile) {
+    setIsDirectoryOnly(false);
+    setForm(profileToForm(member));
+    window.requestAnimationFrame(() => {
+      document.getElementById("member-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   if (!supabase) {
     return (
       <Card>
@@ -289,20 +307,32 @@ export function MemberDirectoryDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 rounded-3xl border border-[var(--brand-border)] bg-white p-4 shadow-sm shadow-slate-900/5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="admin-no-print flex flex-col gap-3 rounded-3xl border border-[var(--brand-border)] bg-white p-4 shadow-sm shadow-slate-900/5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-semibold text-[var(--brand-navy)]">Church directory</p>
-          <p className="text-sm text-[var(--brand-muted)]">{filteredMembers.length} visible members</p>
+          <p className="text-sm text-[var(--brand-muted)]">
+            {filteredMembers.length} visible members from {members.length} total
+          </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setIsDirectoryOnly((current) => !current)}
+          >
+            <Grid3X3 className="h-4 w-4" />
+            {isDirectoryOnly ? "Show admin tools" : "Full-page grid"}
+          </Button>
           <Button type="button" variant="secondary" onClick={() => window.print()}>
             <Download className="h-4 w-4" />
             Print / PDF
           </Button>
-          <Button type="button" onClick={() => setForm(emptyForm)}>
-            <Plus className="h-4 w-4" />
-            New member
-          </Button>
+          {!isDirectoryOnly ? (
+            <Button type="button" onClick={() => setForm(emptyForm)}>
+              <Plus className="h-4 w-4" />
+              New member
+            </Button>
+          ) : null}
           <Button type="button" variant="ghost" onClick={handleSignOut}>
             Sign out
           </Button>
@@ -315,86 +345,63 @@ export function MemberDirectoryDashboard() {
         </div>
       ) : null}
 
-      <div className="admin-no-print grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="admin-no-print">
         <Card>
           <CardHeader>
-            <CardTitle>{form.id ? "Update member" : "Add member"}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSave} className="grid gap-3">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} placeholder="First name" required />
-                <Input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} placeholder="Last name" required />
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Input value={form.birthdayMonthDay} onChange={(e) => setForm({ ...form, birthdayMonthDay: e.target.value })} placeholder="Birthday MM-DD" />
-                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" />
-              </div>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" />
-              <Input value={form.spouseName} onChange={(e) => setForm({ ...form, spouseName: e.target.value })} placeholder="Spouse name" />
-              <Input value={form.children} onChange={(e) => setForm({ ...form, children: e.target.value })} placeholder="Children, separated by commas" />
-              <Input value={form.ministryInterests} onChange={(e) => setForm({ ...form, ministryInterests: e.target.value })} placeholder="Ministry interests, separated by commas" />
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Input value={form.deaconGroup} onChange={(e) => setForm({ ...form, deaconGroup: e.target.value })} placeholder="Deacon group" />
-                <select
-                  value={form.status}
-                  onChange={(event) => setForm({ ...form, status: event.target.value as MemberStatus })}
-                  className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="deceased">Deceased</option>
-                </select>
-              </div>
-              <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Private notes" />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>Filters</CardTitle>
               <div className="flex flex-col gap-2 sm:flex-row">
-                <Button type="submit" disabled={isSaving}>
-                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  Save member
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setSearch("");
+                    setStatus("all");
+                    setDeaconGroup("all");
+                  }}
+                >
+                  Reset
                 </Button>
-                {form.id ? (
-                  <Button type="button" variant="secondary" onClick={() => setForm(emptyForm)}>
-                    Cancel
-                  </Button>
-                ) : null}
+                <Button type="button" variant="secondary" size="sm" onClick={() => window.print()}>
+                  <Download className="h-4 w-4" />
+                  Print filtered
+                </Button>
               </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Filters</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent className="grid gap-3">
+          <CardContent className="grid gap-3 lg:grid-cols-[1.4fr_0.8fr_0.8fr]">
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--brand-muted)]" />
               <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search names, phone, email, ministries..." className="pl-10" />
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <select value={status} onChange={(e) => setStatus(e.target.value as MemberStatus | "all")} className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]">
-                <option value="all">All statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="deceased">Deceased</option>
-              </select>
-              <select value={deaconGroup} onChange={(e) => setDeaconGroup(e.target.value)} className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]">
-                <option value="all">All deacon groups</option>
-                {deaconGroups.map((group) => (
-                  <option key={group} value={group}>
-                    {group}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select value={status} onChange={(e) => setStatus(e.target.value as MemberStatus | "all")} className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]">
+              <option value="all">All statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="deceased">Deceased</option>
+            </select>
+            <select value={deaconGroup} onChange={(e) => setDeaconGroup(e.target.value)} className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]">
+              <option value="all">All deacon groups</option>
+              {deaconGroups.map((group) => (
+                <option key={group} value={group}>
+                  {group}
+                </option>
+              ))}
+            </select>
           </CardContent>
         </Card>
       </div>
 
-      <div className="admin-directory-print grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div
+        className={cn(
+          "admin-directory-print grid gap-4 md:grid-cols-2",
+          isDirectoryOnly ? "xl:grid-cols-4" : "xl:grid-cols-3",
+        )}
+      >
         {isLoading ? (
           <p className="text-sm text-[var(--brand-muted)]">Loading directory...</p>
-        ) : (
+        ) : filteredMembers.length ? (
           filteredMembers.map((member) => (
             <Card key={member.id} className="break-inside-avoid">
               <CardHeader>
@@ -421,14 +428,74 @@ export function MemberDirectoryDashboard() {
                 {member.ministryInterests.length ? (
                   <p>Ministry interests: {member.ministryInterests.join(", ")}</p>
                 ) : null}
-                <Button type="button" variant="secondary" size="sm" className="admin-no-print" onClick={() => setForm(profileToForm(member))}>
+                <Button type="button" variant="secondary" size="sm" className="admin-no-print" onClick={() => handleEditMember(member)}>
+                  <SquarePen className="h-4 w-4" />
                   Edit
                 </Button>
               </CardContent>
             </Card>
           ))
+        ) : (
+          <Card className="md:col-span-2 xl:col-span-3">
+            <CardContent className="p-6">
+              <p className="font-semibold text-[var(--brand-navy)]">No members match these filters.</p>
+              <p className="mt-2 text-sm text-[var(--brand-muted)]">
+                Reset the filters or search for a different name, group, or ministry interest.
+              </p>
+            </CardContent>
+          </Card>
         )}
       </div>
+
+      {!isDirectoryOnly ? (
+        <div id="member-form" className="admin-no-print">
+          <Card>
+            <CardHeader>
+              <CardTitle>{form.id ? "Update member" : "Add member"}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSave} className="grid gap-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} placeholder="First name" required />
+                  <Input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} placeholder="Last name" required />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Input value={form.birthdayMonthDay} onChange={(e) => setForm({ ...form, birthdayMonthDay: e.target.value })} placeholder="Birthday MM-DD" />
+                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" />
+                </div>
+                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" />
+                <Input value={form.spouseName} onChange={(e) => setForm({ ...form, spouseName: e.target.value })} placeholder="Spouse name" />
+                <Input value={form.children} onChange={(e) => setForm({ ...form, children: e.target.value })} placeholder="Children, separated by commas" />
+                <Input value={form.ministryInterests} onChange={(e) => setForm({ ...form, ministryInterests: e.target.value })} placeholder="Ministry interests, separated by commas" />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Input value={form.deaconGroup} onChange={(e) => setForm({ ...form, deaconGroup: e.target.value })} placeholder="Deacon group" />
+                  <select
+                    value={form.status}
+                    onChange={(event) => setForm({ ...form, status: event.target.value as MemberStatus })}
+                    className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="deceased">Deceased</option>
+                  </select>
+                </div>
+                <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Private notes" />
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button type="submit" disabled={isSaving}>
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    Save member
+                  </Button>
+                  {form.id ? (
+                    <Button type="button" variant="secondary" onClick={() => setForm(emptyForm)}>
+                      Cancel
+                    </Button>
+                  ) : null}
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
     </div>
   );
 }
