@@ -64,6 +64,18 @@ const statusStyles: Record<MemberStatus, string> = {
   deceased: "border-red-200 bg-red-50 text-red-700",
 };
 
+const deaconGroupOptions = [
+  "Deacon Bobby Shoulders",
+  "Deacon Bobby McDonald",
+  "Deacon Maurice Pryor",
+  "Deacon Reggie Battles",
+  "Deacon Walter Hamilton",
+  "Deacon Derrick Ward",
+  "Deacon Billy Hammer",
+  "Deacon Wilbert Woodruff",
+  "Deacon Ronald Peoples",
+];
+
 function toMemberProfile(row: SupabaseMemberProfileRow): MemberProfile {
   return {
     id: row.id,
@@ -176,12 +188,6 @@ export function MemberDirectoryDashboard() {
   const canManageAll = directoryRole === "owner" || directoryRole === "admin";
   const canViewFullDirectory =
     directoryRole === "owner" || directoryRole === "admin" || directoryRole === "leader";
-
-  const deaconGroups = useMemo(
-    () =>
-      Array.from(new Set(members.map((member) => member.deaconGroup).filter(Boolean))).sort() as string[],
-    [members],
-  );
 
   const filteredMembers = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -533,7 +539,7 @@ export function MemberDirectoryDashboard() {
               </select>
               <select value={deaconGroup} onChange={(e) => setDeaconGroup(e.target.value)} className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]">
                 <option value="all">All deacon groups</option>
-                {deaconGroups.map((group) => (
+                {deaconGroupOptions.map((group) => (
                   <option key={group} value={group}>
                     {group}
                   </option>
@@ -633,7 +639,7 @@ export function MemberDirectoryDashboard() {
                     className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
                   >
                     <option value="">Select deacon group</option>
-                    {deaconGroups.map((group) => (
+                    {deaconGroupOptions.map((group) => (
                       <option key={group} value={group}>
                         {group}
                       </option>
@@ -733,7 +739,7 @@ export function MemberDirectoryDashboard() {
                       className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
                     >
                       <option value="">Select deacon group</option>
-                      {deaconGroups.map((group) => (
+                      {deaconGroupOptions.map((group) => (
                         <option key={group} value={group}>
                           {group}
                         </option>
