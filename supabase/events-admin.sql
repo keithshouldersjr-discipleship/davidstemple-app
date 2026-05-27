@@ -30,6 +30,20 @@ as $$
   select public.current_directory_role() in ('owner', 'admin');
 $$;
 
+create or replace function public.is_events_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.admin_users
+    where lower(email) = lower(auth.jwt() ->> 'email')
+      and role in ('owner', 'admin')
+  );
+$$;
+
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'event-flyers',
@@ -57,12 +71,7 @@ for insert
 to authenticated
 with check (
   bucket_id = 'event-flyers'
-  and exists (
-    select 1
-    from public.admin_users
-    where lower(email) = lower(auth.jwt() ->> 'email')
-      and role in ('owner', 'admin')
-  )
+  and public.is_events_admin()
 );
 
 drop policy if exists "Admins can update event flyers" on storage.objects;
@@ -72,55 +81,31 @@ for update
 to authenticated
 using (
   bucket_id = 'event-flyers'
-  and exists (
-    select 1
-    from public.admin_users
-    where lower(email) = lower(auth.jwt() ->> 'email')
-      and role in ('owner', 'admin')
-  )
+  and public.is_events_admin()
 )
 with check (
   bucket_id = 'event-flyers'
-  and exists (
-    select 1
-    from public.admin_users
-    where lower(email) = lower(auth.jwt() ->> 'email')
-      and role in ('owner', 'admin')
-  )
+  and public.is_events_admin()
 );
+
+drop policy if exists "Public can read events" on public.events;
+create policy "Public can read events"
+on public.events
+for select
+to public
+using (true);
 
 drop policy if exists "Admins can insert events" on public.events;
 create policy "Admins can insert events"
 on public.events
 for insert
 to authenticated
-with check (
-  exists (
-    select 1
-    from public.admin_users
-    where lower(email) = lower(auth.jwt() ->> 'email')
-      and role in ('owner', 'admin')
-  )
-);
+with check (public.is_events_admin());
 
 drop policy if exists "Admins can update events" on public.events;
 create policy "Admins can update events"
 on public.events
 for update
 to authenticated
-using (
-  exists (
-    select 1
-    from public.admin_users
-    where lower(email) = lower(auth.jwt() ->> 'email')
-      and role in ('owner', 'admin')
-  )
-)
-with check (
-  exists (
-    select 1
-    from public.admin_users
-    where lower(email) = lower(auth.jwt() ->> 'email')
-      and role in ('owner', 'admin')
-  )
-);
+using (public.is_events_admin())
+with check (public.is_events_admin());

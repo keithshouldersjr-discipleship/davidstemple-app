@@ -46,6 +46,20 @@ function slugify(value: string) {
     .replace(/^-|-$/g, "");
 }
 
+function formatDisplayDate(date: string) {
+  const parsed = new Date(`${date}T12:00:00`);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return date;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(parsed);
+}
+
 function rowToForm(row: SupabaseEventRow): EventFormState {
   return {
     id: row.id,
@@ -77,6 +91,7 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
     const { data, error } = await supabase
       .from("events")
       .select("id,title,description,date,time,location,registration_url,flyer_url")
+      .gte("date", new Date().toISOString().slice(0, 10))
       .order("date", { ascending: true })
       .order("time", { ascending: true });
 
@@ -252,7 +267,7 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
       <Card className="overflow-hidden">
         <CardHeader className="border-b border-[var(--brand-border)]">
           <CardTitle>Events</CardTitle>
-          <p className="text-sm text-[var(--brand-muted)]">Select an event to update details or add a flyer URL.</p>
+          <p className="text-sm text-[var(--brand-muted)]">Select an upcoming event to update details or add a flyer.</p>
         </CardHeader>
         <CardContent className="p-0">
           <div className="max-h-[35rem] overflow-y-auto">
@@ -274,7 +289,7 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
                     {event.title}
                   </span>
                   <span className="text-sm text-[var(--brand-muted)]">
-                    {event.date} · {event.time ?? "Time to be announced"} · {event.location ?? "Location to be announced"}
+                    {formatDisplayDate(event.date)} · {event.time ?? "Time to be announced"} · {event.location ?? "Location to be announced"}
                   </span>
                   <span className="inline-flex items-center gap-2 text-xs font-medium text-[var(--brand-burgundy)]">
                     <SquarePen className="h-3.5 w-3.5" />
