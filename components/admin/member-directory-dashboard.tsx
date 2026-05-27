@@ -2,6 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Check,
+  Copy,
   Download,
   Grid3X3,
   Loader2,
@@ -11,6 +13,7 @@ import {
   Search,
   ShieldCheck,
   SquarePen,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -108,6 +111,18 @@ function canEditMember(member: MemberProfile, currentUserEmail: string, role: Di
   );
 }
 
+function getProfileFields(member: MemberProfile) {
+  return [
+    ["Phone", member.phone],
+    ["Email", member.email],
+    ["Birthday", member.birthdayMonthDay],
+    ["Spouse", member.spouseName],
+    ["Children", member.children.join(", ")],
+    ["Ministry interests", member.ministryInterests.join(", ")],
+    ["Deacon group", member.deaconGroup],
+  ].filter((field): field is [string, string] => Boolean(field[1]));
+}
+
 export function MemberDirectoryDashboard() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [email, setEmail] = useState("");
@@ -125,6 +140,7 @@ export function MemberDirectoryDashboard() {
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [directoryRole, setDirectoryRole] = useState<DirectoryRole>("none");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const canManageAll = directoryRole === "owner" || directoryRole === "admin";
   const canViewFullDirectory =
@@ -323,6 +339,18 @@ export function MemberDirectoryDashboard() {
     });
   }
 
+  async function copyField(label: string, value?: string) {
+    if (!value) return;
+
+    await navigator.clipboard.writeText(value);
+    setCopiedField(label);
+    window.setTimeout(() => setCopiedField(null), 1400);
+  }
+
+  function closeProfileModal() {
+    setSelectedMemberId(null);
+  }
+
   if (!supabase) {
     return (
       <Card>
@@ -463,7 +491,7 @@ export function MemberDirectoryDashboard() {
         </div>
       ) : null}
 
-      <div className={cn("admin-directory-print grid gap-4", canViewFullDirectory ? "lg:grid-cols-[0.88fr_1.12fr]" : "")}>
+      <div className="admin-directory-print">
         {isLoading ? (
           <p className="text-sm text-[var(--brand-muted)]">Loading directory...</p>
         ) : filteredMembers.length ? (
@@ -503,44 +531,6 @@ export function MemberDirectoryDashboard() {
                       </button>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            ) : null}
-
-            {selectedMember ? (
-              <Card className="break-inside-avoid">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <CardTitle>
-                        {selectedMember.firstName} {selectedMember.lastName}
-                      </CardTitle>
-                      {selectedMember.deaconGroup ? (
-                        <p className="text-sm text-[var(--brand-muted)]">{selectedMember.deaconGroup}</p>
-                      ) : null}
-                    </div>
-                    <span className={cn("rounded-full border px-3 py-1 text-xs font-semibold capitalize", statusStyles[selectedMember.status])}>
-                      {selectedMember.status}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4 text-sm text-[var(--brand-muted)]">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {selectedMember.birthdayMonthDay ? <p>Birthday: {selectedMember.birthdayMonthDay}</p> : null}
-                    {selectedMember.phone ? <p>Phone: {selectedMember.phone}</p> : null}
-                    {selectedMember.email ? <p>Email: {selectedMember.email}</p> : null}
-                    {selectedMember.spouseName ? <p>Spouse: {selectedMember.spouseName}</p> : null}
-                  </div>
-                  {selectedMember.children.length ? <p>Children: {selectedMember.children.join(", ")}</p> : null}
-                  {selectedMember.ministryInterests.length ? (
-                    <p>Ministry interests: {selectedMember.ministryInterests.join(", ")}</p>
-                  ) : null}
-                  {canEditMember(selectedMember, currentUserEmail, directoryRole) ? (
-                    <Button type="button" variant="secondary" size="sm" className="admin-no-print" onClick={() => handleEditMember(selectedMember)}>
-                      <SquarePen className="h-4 w-4" />
-                      Edit profile
-                    </Button>
-                  ) : null}
                 </CardContent>
               </Card>
             ) : null}
@@ -614,6 +604,80 @@ export function MemberDirectoryDashboard() {
                   ) : null}
                 </div>
               </form>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
+      {selectedMember ? (
+        <div
+          className="admin-no-print fixed inset-0 z-50 flex items-end justify-center bg-slate-950/55 p-3 sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="member-profile-title"
+          onClick={closeProfileModal}
+        >
+          <Card
+            className="max-h-[88vh] w-full max-w-2xl overflow-hidden"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <CardHeader className="border-b border-[var(--brand-border)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <CardTitle id="member-profile-title">
+                    {selectedMember.firstName} {selectedMember.lastName}
+                  </CardTitle>
+                  <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                    {selectedMember.deaconGroup ?? "No deacon group listed"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--brand-border)] text-[var(--brand-muted)] hover:bg-[var(--brand-soft)]"
+                  aria-label="Close member profile"
+                  onClick={closeProfileModal}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent className="max-h-[68vh] space-y-4 overflow-y-auto p-5">
+              <span className={cn("inline-flex rounded-full border px-3 py-1 text-xs font-semibold capitalize", statusStyles[selectedMember.status])}>
+                {selectedMember.status}
+              </span>
+              <div className="grid gap-3">
+                {getProfileFields(selectedMember).map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="flex flex-col gap-3 rounded-2xl border border-[var(--brand-border)] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--brand-burgundy)]">
+                          {label}
+                        </p>
+                        <p className="mt-1 break-words text-sm font-medium text-[var(--brand-navy)]">
+                          {value}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        onClick={() => void copyField(label, value)}
+                      >
+                        {copiedField === label ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        {copiedField === label ? "Copied" : "Copy"}
+                      </Button>
+                    </div>
+                ))}
+              </div>
+              {canEditMember(selectedMember, currentUserEmail, directoryRole) ? (
+                <Button type="button" variant="secondary" onClick={() => handleEditMember(selectedMember)}>
+                  <SquarePen className="h-4 w-4" />
+                  Edit profile
+                </Button>
+              ) : null}
             </CardContent>
           </Card>
         </div>
