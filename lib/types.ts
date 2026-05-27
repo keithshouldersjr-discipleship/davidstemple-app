@@ -56,6 +56,23 @@ export type MinistryContact = {
   sortOrder: number;
 };
 
+export type MemberStatus = "active" | "inactive" | "deceased";
+
+export type MemberProfile = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  birthdayMonthDay?: string;
+  phone?: string;
+  email?: string;
+  spouseName?: string;
+  children: string[];
+  ministryInterests: string[];
+  deaconGroup?: string;
+  status: MemberStatus;
+  notes?: string;
+};
+
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";

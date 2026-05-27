@@ -30,8 +30,34 @@ export type SupabaseMinistryContactRow = {
   sort_order: number;
 };
 
+export type SupabaseMemberProfileRow = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  birthday_month_day: string | null;
+  phone: string | null;
+  email: string | null;
+  spouse_name: string | null;
+  children: string[] | null;
+  ministry_interests: string[] | null;
+  deacon_group: string | null;
+  status: "active" | "inactive" | "deceased";
+  notes: string | null;
+};
+
 export function isSupabaseConfigured() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
+export function createSupabaseBrowserClient() {
+  if (!isSupabaseConfigured()) {
+    return null;
+  }
+
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
 }
 
 export function createSupabaseServerClient() {

@@ -33,10 +33,17 @@ The first Supabase version uses three public read tables:
 - `events`: feeds the homepage event preview and `/events`
 - `church_info`: feeds ask.dt knowledge-base answers
 - `ministry_contacts`: feeds `/serve` and ministry contact answers in ask.dt
+- `admin_users`: allowlist for admin dashboard access
+- `member_profiles`: church directory profiles for authenticated admins
 
 If you already ran `supabase/schema.sql` before the Serve page was added, run
 `supabase/ministry-contacts.sql` in the Supabase SQL Editor to add the new table
 and starter ministry contact content.
+
+For the admin directory, run `supabase/member-directory.sql` in the Supabase SQL
+Editor, then add your email address to `admin_users`. Create your login user in
+Supabase Auth using the same email address. The import template is
+`supabase/member-directory-import-template.csv`.
 
 The app falls back to `lib/mock-data.ts` if Supabase is not configured or if a read fails.
 

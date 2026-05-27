@@ -35,3 +35,26 @@ a {
 ::selection {
   background: rgba(138, 0, 31, 0.18);
 }
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  header,
+  footer,
+  .admin-no-print {
+    display: none !important;
+  }
+
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .admin-directory-print {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+}
