@@ -1,5 +1,6 @@
--- Admin allowlist for davidstemple.app.
+-- Directory access allowlist for davidstemple.app.
 -- Safe to rerun. Existing emails will have their role updated.
+-- Roles: owner, admin, leader, member.
 
 insert into public.admin_users (email, role)
 values

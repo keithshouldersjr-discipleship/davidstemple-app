@@ -36,6 +36,8 @@ type MemberFormState = {
   notes: string;
 };
 
+type DirectoryRole = "owner" | "admin" | "leader" | "member" | "none";
+
 const emptyForm: MemberFormState = {
   firstName: "",
   lastName: "",
@@ -97,6 +99,14 @@ function profileToForm(profile: MemberProfile): MemberFormState {
   };
 }
 
+function canEditMember(member: MemberProfile, currentUserEmail: string, role: DirectoryRole) {
+  return (
+    role === "owner" ||
+    role === "admin" ||
+    Boolean(member.email && member.email.toLowerCase() === currentUserEmail.toLowerCase())
+  );
+}
+
 export function MemberDirectoryDashboard() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [email, setEmail] = useState("");
@@ -111,6 +121,12 @@ export function MemberDirectoryDashboard() {
   const [form, setForm] = useState<MemberFormState>(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
   const [isDirectoryOnly, setIsDirectoryOnly] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
+  const [directoryRole, setDirectoryRole] = useState<DirectoryRole>("none");
+
+  const canManageAll = directoryRole === "owner" || directoryRole === "admin";
+  const canViewFullDirectory =
+    directoryRole === "owner" || directoryRole === "admin" || directoryRole === "leader";
 
   const deaconGroups = useMemo(
     () =>
@@ -170,6 +186,37 @@ export function MemberDirectoryDashboard() {
     setIsLoading(false);
   }, [supabase]);
 
+  const loadCurrentUserRole = useCallback(async () => {
+    if (!supabase) return "none" as DirectoryRole;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const userEmail = user?.email?.toLowerCase() ?? "";
+
+    setCurrentUserEmail(userEmail);
+
+    if (!userEmail) {
+      setDirectoryRole("none");
+      return "none" as DirectoryRole;
+    }
+
+    const { data, error } = await supabase
+      .from("admin_users")
+      .select("role")
+      .eq("email", userEmail)
+      .maybeSingle();
+
+    if (error || !data) {
+      setDirectoryRole("none");
+      return "none" as DirectoryRole;
+    }
+
+    const role = (data.role ?? "none") as DirectoryRole;
+    setDirectoryRole(role);
+    return role;
+  }, [supabase]);
+
   useEffect(() => {
     if (!supabase) return;
 
@@ -179,10 +226,11 @@ export function MemberDirectoryDashboard() {
       setIsLoading(false);
 
       if (signedIn) {
+        void loadCurrentUserRole();
         void loadMembers();
       }
     });
-  }, [loadMembers, supabase]);
+  }, [loadCurrentUserRole, loadMembers, supabase]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -202,6 +250,7 @@ export function MemberDirectoryDashboard() {
     }
 
     setIsSignedIn(true);
+    await loadCurrentUserRole();
     await loadMembers();
   }
 
@@ -210,6 +259,8 @@ export function MemberDirectoryDashboard() {
 
     await supabase.auth.signOut();
     setIsSignedIn(false);
+    setCurrentUserEmail("");
+    setDirectoryRole("none");
     setMembers([]);
   }
 
@@ -217,6 +268,11 @@ export function MemberDirectoryDashboard() {
     event.preventDefault();
 
     if (!supabase) return;
+
+    if (!canManageAll && !form.id) {
+      setMessage("Only admins can add new member profiles.");
+      return;
+    }
 
     setIsSaving(true);
     setMessage("");
@@ -249,6 +305,11 @@ export function MemberDirectoryDashboard() {
   }
 
   function handleEditMember(member: MemberProfile) {
+    if (!canEditMember(member, currentUserEmail, directoryRole)) {
+      setMessage("You can only update the member profile connected to your email address.");
+      return;
+    }
+
     setIsDirectoryOnly(false);
     setForm(profileToForm(member));
     window.requestAnimationFrame(() => {
@@ -312,6 +373,7 @@ export function MemberDirectoryDashboard() {
           <p className="font-semibold text-[var(--brand-navy)]">Church directory</p>
           <p className="text-sm text-[var(--brand-muted)]">
             {filteredMembers.length} visible members from {members.length} total
+            {directoryRole !== "none" ? ` · ${directoryRole} access` : ""}
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -327,7 +389,7 @@ export function MemberDirectoryDashboard() {
             <Download className="h-4 w-4" />
             Print / PDF
           </Button>
-          {!isDirectoryOnly ? (
+          {!isDirectoryOnly && canManageAll ? (
             <Button type="button" onClick={() => setForm(emptyForm)}>
               <Plus className="h-4 w-4" />
               New member
@@ -345,53 +407,55 @@ export function MemberDirectoryDashboard() {
         </div>
       ) : null}
 
-      <div className="admin-no-print">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <CardTitle>Filters</CardTitle>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setSearch("");
-                    setStatus("all");
-                    setDeaconGroup("all");
-                  }}
-                >
-                  Reset
-                </Button>
-                <Button type="button" variant="secondary" size="sm" onClick={() => window.print()}>
-                  <Download className="h-4 w-4" />
-                  Print filtered
-                </Button>
+      {canViewFullDirectory ? (
+        <div className="admin-no-print">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <CardTitle>Filters</CardTitle>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setSearch("");
+                      setStatus("all");
+                      setDeaconGroup("all");
+                    }}
+                  >
+                    Reset
+                  </Button>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => window.print()}>
+                    <Download className="h-4 w-4" />
+                    Print filtered
+                  </Button>
+                </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="grid gap-3 lg:grid-cols-[1.4fr_0.8fr_0.8fr]">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--brand-muted)]" />
-              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search names, phone, email, ministries..." className="pl-10" />
-            </div>
-            <select value={status} onChange={(e) => setStatus(e.target.value as MemberStatus | "all")} className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]">
-              <option value="all">All statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="deceased">Deceased</option>
-            </select>
-            <select value={deaconGroup} onChange={(e) => setDeaconGroup(e.target.value)} className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]">
-              <option value="all">All deacon groups</option>
-              {deaconGroups.map((group) => (
-                <option key={group} value={group}>
-                  {group}
-                </option>
-              ))}
-            </select>
-          </CardContent>
-        </Card>
-      </div>
+            </CardHeader>
+            <CardContent className="grid gap-3 lg:grid-cols-[1.4fr_0.8fr_0.8fr]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--brand-muted)]" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search names, phone, email, ministries..." className="pl-10" />
+              </div>
+              <select value={status} onChange={(e) => setStatus(e.target.value as MemberStatus | "all")} className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]">
+                <option value="all">All statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="deceased">Deceased</option>
+              </select>
+              <select value={deaconGroup} onChange={(e) => setDeaconGroup(e.target.value)} className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]">
+                <option value="all">All deacon groups</option>
+                {deaconGroups.map((group) => (
+                  <option key={group} value={group}>
+                    {group}
+                  </option>
+                ))}
+              </select>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
 
       <div
         className={cn(
@@ -428,10 +492,12 @@ export function MemberDirectoryDashboard() {
                 {member.ministryInterests.length ? (
                   <p>Ministry interests: {member.ministryInterests.join(", ")}</p>
                 ) : null}
-                <Button type="button" variant="secondary" size="sm" className="admin-no-print" onClick={() => handleEditMember(member)}>
-                  <SquarePen className="h-4 w-4" />
-                  Edit
-                </Button>
+                {canEditMember(member, currentUserEmail, directoryRole) ? (
+                  <Button type="button" variant="secondary" size="sm" className="admin-no-print" onClick={() => handleEditMember(member)}>
+                    <SquarePen className="h-4 w-4" />
+                    Edit
+                  </Button>
+                ) : null}
               </CardContent>
             </Card>
           ))
@@ -447,7 +513,7 @@ export function MemberDirectoryDashboard() {
         )}
       </div>
 
-      {!isDirectoryOnly ? (
+      {!isDirectoryOnly && (canManageAll || form.id) ? (
         <div id="member-form" className="admin-no-print">
           <Card>
             <CardHeader>
@@ -463,23 +529,35 @@ export function MemberDirectoryDashboard() {
                   <Input value={form.birthdayMonthDay} onChange={(e) => setForm({ ...form, birthdayMonthDay: e.target.value })} placeholder="Birthday MM-DD" />
                   <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" />
                 </div>
-                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" />
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="Email"
+                  disabled={!canManageAll}
+                />
                 <Input value={form.spouseName} onChange={(e) => setForm({ ...form, spouseName: e.target.value })} placeholder="Spouse name" />
                 <Input value={form.children} onChange={(e) => setForm({ ...form, children: e.target.value })} placeholder="Children, separated by commas" />
                 <Input value={form.ministryInterests} onChange={(e) => setForm({ ...form, ministryInterests: e.target.value })} placeholder="Ministry interests, separated by commas" />
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Input value={form.deaconGroup} onChange={(e) => setForm({ ...form, deaconGroup: e.target.value })} placeholder="Deacon group" />
-                  <select
-                    value={form.status}
-                    onChange={(event) => setForm({ ...form, status: event.target.value as MemberStatus })}
-                    className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="deceased">Deceased</option>
-                  </select>
+                  {canManageAll ? (
+                    <select
+                      value={form.status}
+                      onChange={(event) => setForm({ ...form, status: event.target.value as MemberStatus })}
+                      className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="deceased">Deceased</option>
+                    </select>
+                  ) : (
+                    <Input value={form.status} disabled />
+                  )}
                 </div>
-                <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Private notes" />
+                {canManageAll ? (
+                  <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Private notes" />
+                ) : null}
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Button type="submit" disabled={isSaving}>
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}

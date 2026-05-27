@@ -5,9 +5,16 @@
 create table if not exists public.admin_users (
   id uuid primary key default gen_random_uuid(),
   email text not null unique,
-  role text not null default 'admin',
+  role text not null default 'member' check (role in ('owner', 'admin', 'leader', 'member')),
   created_at timestamptz not null default now()
 );
+
+alter table public.admin_users
+drop constraint if exists admin_users_role_check;
+
+alter table public.admin_users
+add constraint admin_users_role_check
+check (role in ('owner', 'admin', 'leader', 'member'));
 
 create table if not exists public.member_profiles (
   id uuid primary key default gen_random_uuid(),
@@ -50,34 +57,81 @@ as $$
   );
 $$;
 
+create or replace function public.current_directory_role()
+returns text
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (
+      select role
+      from public.admin_users
+      where lower(email) = lower(auth.jwt() ->> 'email')
+      limit 1
+    ),
+    'none'
+  );
+$$;
+
+create or replace function public.can_manage_directory()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select public.current_directory_role() in ('owner', 'admin');
+$$;
+
+create or replace function public.can_view_directory()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select public.current_directory_role() in ('owner', 'admin', 'leader');
+$$;
+
 drop policy if exists "Admins can read admin users" on public.admin_users;
-create policy "Admins can read admin users"
+drop policy if exists "Approved users can read their role" on public.admin_users;
+create policy "Approved users can read their role"
 on public.admin_users
 for select
 to authenticated
-using (public.is_admin_user());
+using (lower(email) = lower(auth.jwt() ->> 'email') or public.can_manage_directory());
 
 drop policy if exists "Admins can read member profiles" on public.member_profiles;
-create policy "Admins can read member profiles"
+drop policy if exists "Approved users can read permitted member profiles" on public.member_profiles;
+create policy "Approved users can read permitted member profiles"
 on public.member_profiles
 for select
 to authenticated
-using (public.is_admin_user());
+using (
+  public.can_view_directory()
+  or lower(email) = lower(auth.jwt() ->> 'email')
+);
 
 drop policy if exists "Admins can insert member profiles" on public.member_profiles;
 create policy "Admins can insert member profiles"
 on public.member_profiles
 for insert
 to authenticated
-with check (public.is_admin_user());
+with check (public.can_manage_directory());
 
 drop policy if exists "Admins can update member profiles" on public.member_profiles;
-create policy "Admins can update member profiles"
+drop policy if exists "Approved users can update permitted member profiles" on public.member_profiles;
+create policy "Approved users can update permitted member profiles"
 on public.member_profiles
 for update
 to authenticated
-using (public.is_admin_user())
-with check (public.is_admin_user());
+using (
+  public.can_manage_directory()
+  or lower(email) = lower(auth.jwt() ->> 'email')
+)
+with check (
+  public.can_manage_directory()
+  or lower(email) = lower(auth.jwt() ->> 'email')
+);
 
 -- Replace this email with your Supabase Auth user email before running,
 -- or run a separate insert after the tables are created.
@@ -86,7 +140,7 @@ with check (public.is_admin_user());
 -- on conflict (email) do update set role = excluded.role;
 
 -- Google Sheets / CSV import column pattern:
--- first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,status,notes
+-- external_id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,status,notes
 --
 -- Use MM-DD for birthday_month_day so the directory never stores birth years.
 -- Use comma-separated text for children and ministry_interests before converting to text[].
