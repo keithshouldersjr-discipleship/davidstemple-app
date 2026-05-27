@@ -179,7 +179,7 @@ export function MemberDirectoryDashboard() {
   }, [deaconGroup, members, search, status]);
 
   const selectedMember = useMemo(() => {
-    return filteredMembers.find((member) => member.id === selectedMemberId) ?? filteredMembers[0];
+    return filteredMembers.find((member) => member.id === selectedMemberId);
   }, [filteredMembers, selectedMemberId]);
 
   const loadMembers = useCallback(async () => {
