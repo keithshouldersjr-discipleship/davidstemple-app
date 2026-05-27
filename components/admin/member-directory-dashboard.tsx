@@ -5,7 +5,6 @@ import {
   Check,
   Copy,
   Download,
-  Grid3X3,
   Loader2,
   Lock,
   Phone,
@@ -167,7 +166,6 @@ export function MemberDirectoryDashboard() {
   const [deaconGroup, setDeaconGroup] = useState("all");
   const [form, setForm] = useState<MemberFormState>(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
-  const [isDirectoryOnly, setIsDirectoryOnly] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [directoryRole, setDirectoryRole] = useState<DirectoryRole>("none");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
@@ -474,19 +472,11 @@ export function MemberDirectoryDashboard() {
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setIsDirectoryOnly((current) => !current)}
-          >
-            <Grid3X3 className="h-4 w-4" />
-            {isDirectoryOnly ? "Show admin tools" : "Full-page list"}
-          </Button>
           <Button type="button" variant="secondary" onClick={() => window.print()}>
             <Download className="h-4 w-4" />
             Print / PDF
           </Button>
-          {!isDirectoryOnly && canManageAll ? (
+          {canManageAll ? (
             <Button type="button" onClick={() => setForm(emptyForm)}>
               <Plus className="h-4 w-4" />
               New member
@@ -610,7 +600,7 @@ export function MemberDirectoryDashboard() {
         )}
       </div>
 
-      {!isDirectoryOnly && (canManageAll || form.id) ? (
+      {canManageAll || form.id ? (
         <div id="member-form" className="admin-no-print">
           <Card>
             <CardHeader>

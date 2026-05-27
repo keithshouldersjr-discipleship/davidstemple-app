@@ -194,7 +194,6 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
             </div>
             <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Location" />
             <Input value={form.registrationUrl} onChange={(e) => setForm({ ...form, registrationUrl: e.target.value })} placeholder="Registration URL" />
-            <Input value={form.flyerUrl} onChange={(e) => setForm({ ...form, flyerUrl: e.target.value })} placeholder="Flyer URL" />
             <label className="grid gap-2 rounded-2xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-soft)] p-4 text-sm text-[var(--brand-muted)]">
               <span className="flex items-center gap-2 font-medium text-[var(--brand-navy)]">
                 <FileUp className="h-4 w-4 text-[var(--brand-burgundy)]" />

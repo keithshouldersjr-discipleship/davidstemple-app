@@ -4,6 +4,32 @@
 alter table public.events
 add column if not exists flyer_url text;
 
+create or replace function public.current_directory_role()
+returns text
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (
+      select role
+      from public.admin_users
+      where lower(email) = lower(auth.jwt() ->> 'email')
+      limit 1
+    ),
+    'none'
+  );
+$$;
+
+create or replace function public.can_manage_directory()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select public.current_directory_role() in ('owner', 'admin');
+$$;
+
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'event-flyers',
@@ -31,7 +57,12 @@ for insert
 to authenticated
 with check (
   bucket_id = 'event-flyers'
-  and public.can_manage_directory()
+  and exists (
+    select 1
+    from public.admin_users
+    where lower(email) = lower(auth.jwt() ->> 'email')
+      and role in ('owner', 'admin')
+  )
 );
 
 drop policy if exists "Admins can update event flyers" on storage.objects;
@@ -41,11 +72,21 @@ for update
 to authenticated
 using (
   bucket_id = 'event-flyers'
-  and public.can_manage_directory()
+  and exists (
+    select 1
+    from public.admin_users
+    where lower(email) = lower(auth.jwt() ->> 'email')
+      and role in ('owner', 'admin')
+  )
 )
 with check (
   bucket_id = 'event-flyers'
-  and public.can_manage_directory()
+  and exists (
+    select 1
+    from public.admin_users
+    where lower(email) = lower(auth.jwt() ->> 'email')
+      and role in ('owner', 'admin')
+  )
 );
 
 drop policy if exists "Admins can insert events" on public.events;
@@ -53,12 +94,33 @@ create policy "Admins can insert events"
 on public.events
 for insert
 to authenticated
-with check (public.can_manage_directory());
+with check (
+  exists (
+    select 1
+    from public.admin_users
+    where lower(email) = lower(auth.jwt() ->> 'email')
+      and role in ('owner', 'admin')
+  )
+);
 
 drop policy if exists "Admins can update events" on public.events;
 create policy "Admins can update events"
 on public.events
 for update
 to authenticated
-using (public.can_manage_directory())
-with check (public.can_manage_directory());
+using (
+  exists (
+    select 1
+    from public.admin_users
+    where lower(email) = lower(auth.jwt() ->> 'email')
+      and role in ('owner', 'admin')
+  )
+)
+with check (
+  exists (
+    select 1
+    from public.admin_users
+    where lower(email) = lower(auth.jwt() ->> 'email')
+      and role in ('owner', 'admin')
+  )
+);
