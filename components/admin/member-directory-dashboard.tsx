@@ -6,6 +6,7 @@ import {
   Grid3X3,
   Loader2,
   Lock,
+  Phone,
   Plus,
   Search,
   ShieldCheck,
@@ -123,6 +124,7 @@ export function MemberDirectoryDashboard() {
   const [isDirectoryOnly, setIsDirectoryOnly] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [directoryRole, setDirectoryRole] = useState<DirectoryRole>("none");
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
   const canManageAll = directoryRole === "owner" || directoryRole === "admin";
   const canViewFullDirectory =
@@ -159,6 +161,10 @@ export function MemberDirectoryDashboard() {
       );
     });
   }, [deaconGroup, members, search, status]);
+
+  const selectedMember = useMemo(() => {
+    return filteredMembers.find((member) => member.id === selectedMemberId) ?? filteredMembers[0];
+  }, [filteredMembers, selectedMemberId]);
 
   const loadMembers = useCallback(async () => {
     if (!supabase) return;
@@ -383,7 +389,7 @@ export function MemberDirectoryDashboard() {
             onClick={() => setIsDirectoryOnly((current) => !current)}
           >
             <Grid3X3 className="h-4 w-4" />
-            {isDirectoryOnly ? "Show admin tools" : "Full-page grid"}
+            {isDirectoryOnly ? "Show admin tools" : "Full-page list"}
           </Button>
           <Button type="button" variant="secondary" onClick={() => window.print()}>
             <Download className="h-4 w-4" />
@@ -457,50 +463,88 @@ export function MemberDirectoryDashboard() {
         </div>
       ) : null}
 
-      <div
-        className={cn(
-          "admin-directory-print grid gap-4 md:grid-cols-2",
-          isDirectoryOnly ? "xl:grid-cols-4" : "xl:grid-cols-3",
-        )}
-      >
+      <div className={cn("admin-directory-print grid gap-4", canViewFullDirectory ? "lg:grid-cols-[0.88fr_1.12fr]" : "")}>
         {isLoading ? (
           <p className="text-sm text-[var(--brand-muted)]">Loading directory...</p>
         ) : filteredMembers.length ? (
-          filteredMembers.map((member) => (
-            <Card key={member.id} className="break-inside-avoid">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <CardTitle>
-                      {member.firstName} {member.lastName}
-                    </CardTitle>
-                    {member.deaconGroup ? (
-                      <p className="text-sm text-[var(--brand-muted)]">{member.deaconGroup}</p>
-                    ) : null}
+          <>
+            {canViewFullDirectory ? (
+              <Card className="overflow-hidden">
+                <CardHeader className="border-b border-[var(--brand-border)]">
+                  <CardTitle>Member list</CardTitle>
+                  <p className="text-sm text-[var(--brand-muted)]">
+                    Select a name or phone number to view the full profile.
+                  </p>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="admin-directory-list max-h-[34rem] overflow-y-auto">
+                    {filteredMembers.map((member) => (
+                      <button
+                        key={member.id}
+                        type="button"
+                        className={cn(
+                          "grid w-full grid-cols-[1fr_auto] gap-3 border-b border-[var(--brand-border)] px-4 py-3 text-left transition hover:bg-[var(--brand-soft)]",
+                          selectedMember?.id === member.id && "bg-[var(--brand-burgundy-soft)]",
+                        )}
+                        onClick={() => setSelectedMemberId(member.id)}
+                      >
+                        <span>
+                          <span className="block font-semibold text-[var(--brand-navy)]">
+                            {member.firstName} {member.lastName}
+                          </span>
+                          <span className="mt-1 block text-xs text-[var(--brand-muted)]">
+                            {member.deaconGroup ?? "No deacon group listed"}
+                          </span>
+                        </span>
+                        <span className="flex items-center gap-2 text-sm font-medium text-[var(--brand-muted)]">
+                          <Phone className="h-4 w-4 text-[var(--brand-burgundy)]" />
+                          {member.phone ?? "No phone"}
+                        </span>
+                      </button>
+                    ))}
                   </div>
-                  <span className={cn("rounded-full border px-3 py-1 text-xs font-semibold capitalize", statusStyles[member.status])}>
-                    {member.status}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-[var(--brand-muted)]">
-                {member.birthdayMonthDay ? <p>Birthday: {member.birthdayMonthDay}</p> : null}
-                {member.phone ? <p>Phone: {member.phone}</p> : null}
-                {member.email ? <p>Email: {member.email}</p> : null}
-                {member.spouseName ? <p>Spouse: {member.spouseName}</p> : null}
-                {member.children.length ? <p>Children: {member.children.join(", ")}</p> : null}
-                {member.ministryInterests.length ? (
-                  <p>Ministry interests: {member.ministryInterests.join(", ")}</p>
-                ) : null}
-                {canEditMember(member, currentUserEmail, directoryRole) ? (
-                  <Button type="button" variant="secondary" size="sm" className="admin-no-print" onClick={() => handleEditMember(member)}>
-                    <SquarePen className="h-4 w-4" />
-                    Edit
-                  </Button>
-                ) : null}
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {selectedMember ? (
+              <Card className="break-inside-avoid">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <CardTitle>
+                        {selectedMember.firstName} {selectedMember.lastName}
+                      </CardTitle>
+                      {selectedMember.deaconGroup ? (
+                        <p className="text-sm text-[var(--brand-muted)]">{selectedMember.deaconGroup}</p>
+                      ) : null}
+                    </div>
+                    <span className={cn("rounded-full border px-3 py-1 text-xs font-semibold capitalize", statusStyles[selectedMember.status])}>
+                      {selectedMember.status}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm text-[var(--brand-muted)]">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {selectedMember.birthdayMonthDay ? <p>Birthday: {selectedMember.birthdayMonthDay}</p> : null}
+                    {selectedMember.phone ? <p>Phone: {selectedMember.phone}</p> : null}
+                    {selectedMember.email ? <p>Email: {selectedMember.email}</p> : null}
+                    {selectedMember.spouseName ? <p>Spouse: {selectedMember.spouseName}</p> : null}
+                  </div>
+                  {selectedMember.children.length ? <p>Children: {selectedMember.children.join(", ")}</p> : null}
+                  {selectedMember.ministryInterests.length ? (
+                    <p>Ministry interests: {selectedMember.ministryInterests.join(", ")}</p>
+                  ) : null}
+                  {canEditMember(selectedMember, currentUserEmail, directoryRole) ? (
+                    <Button type="button" variant="secondary" size="sm" className="admin-no-print" onClick={() => handleEditMember(selectedMember)}>
+                      <SquarePen className="h-4 w-4" />
+                      Edit profile
+                    </Button>
+                  ) : null}
+                </CardContent>
+              </Card>
+            ) : null}
+          </>
         ) : (
           <Card className="md:col-span-2 xl:col-span-3">
             <CardContent className="p-6">

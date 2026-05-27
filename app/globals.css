@@ -57,4 +57,9 @@ a {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 12px !important;
   }
+
+  .admin-directory-list {
+    max-height: none !important;
+    overflow: visible !important;
+  }
 }
