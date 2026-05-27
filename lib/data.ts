@@ -39,12 +39,33 @@ export async function getEvents(): Promise<Event[]> {
 
   const { data, error } = await supabase
     .from("events")
-    .select("id,title,description,date,time,location,registration_url")
+    .select("id,title,description,date,time,location,registration_url,flyer_url")
     .gte("date", new Date().toISOString().slice(0, 10))
     .order("date", { ascending: true })
     .order("time", { ascending: true });
 
   if (error || !data) {
+    if (error?.code === "42703") {
+      const { data: legacyData, error: legacyError } = await supabase
+        .from("events")
+        .select("id,title,description,date,time,location,registration_url")
+        .gte("date", new Date().toISOString().slice(0, 10))
+        .order("date", { ascending: true })
+        .order("time", { ascending: true });
+
+      if (!legacyError && legacyData) {
+        return (legacyData as Omit<SupabaseEventRow, "flyer_url">[]).map((event) => ({
+          id: event.id,
+          title: event.title,
+          description: event.description ?? "David's Temple church event.",
+          date: formatEventDate(event.date),
+          time: event.time ?? "Time to be announced",
+          location: event.location ?? "Location to be announced",
+          registrationUrl: event.registration_url ?? undefined,
+        }));
+      }
+    }
+
     console.error("Unable to load Supabase events", error);
     return mockEvents;
   }
@@ -57,6 +78,7 @@ export async function getEvents(): Promise<Event[]> {
     time: event.time ?? "Time to be announced",
     location: event.location ?? "Location to be announced",
     registrationUrl: event.registration_url ?? undefined,
+    flyerUrl: event.flyer_url ?? undefined,
   }));
 }
 

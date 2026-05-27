@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { EventsAdminPanel } from "@/components/admin/events-admin-panel";
 import {
   createSupabaseBrowserClient,
   type SupabaseMemberProfileRow,
@@ -41,6 +42,8 @@ type MemberFormState = {
 };
 
 type DirectoryRole = "owner" | "admin" | "leader" | "member" | "none";
+type AdminTab = "directory" | "events";
+type ProfileModalMode = "view" | "edit";
 
 const emptyForm: MemberFormState = {
   firstName: "",
@@ -141,6 +144,8 @@ export function MemberDirectoryDashboard() {
   const [directoryRole, setDirectoryRole] = useState<DirectoryRole>("none");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<AdminTab>("directory");
+  const [profileModalMode, setProfileModalMode] = useState<ProfileModalMode>("view");
 
   const canManageAll = directoryRole === "owner" || directoryRole === "admin";
   const canViewFullDirectory =
@@ -320,23 +325,11 @@ export function MemberDirectoryDashboard() {
       setMessage(error.message);
     } else {
       setForm(emptyForm);
+      setProfileModalMode("view");
       await loadMembers();
     }
 
     setIsSaving(false);
-  }
-
-  function handleEditMember(member: MemberProfile) {
-    if (!canEditMember(member, currentUserEmail, directoryRole)) {
-      setMessage("You can only update the member profile connected to your email address.");
-      return;
-    }
-
-    setIsDirectoryOnly(false);
-    setForm(profileToForm(member));
-    window.requestAnimationFrame(() => {
-      document.getElementById("member-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
   }
 
   async function copyField(label: string, value?: string) {
@@ -349,6 +342,23 @@ export function MemberDirectoryDashboard() {
 
   function closeProfileModal() {
     setSelectedMemberId(null);
+    setProfileModalMode("view");
+    setForm(emptyForm);
+  }
+
+  function openProfileModal(memberId: string) {
+    setSelectedMemberId(memberId);
+    setProfileModalMode("view");
+  }
+
+  function startModalEdit(member: MemberProfile) {
+    if (!canEditMember(member, currentUserEmail, directoryRole)) {
+      setMessage("You can only update the member profile connected to your email address.");
+      return;
+    }
+
+    setForm(profileToForm(member));
+    setProfileModalMode("edit");
   }
 
   if (!supabase) {
@@ -402,6 +412,31 @@ export function MemberDirectoryDashboard() {
 
   return (
     <div className="space-y-6">
+      <div className="admin-no-print flex rounded-full border border-[var(--brand-border)] bg-white p-1 shadow-sm shadow-slate-900/5">
+        {[
+          ["directory", "Member Directory"],
+          ["events", "Events"],
+        ].map(([tab, label]) => (
+          <button
+            key={tab}
+            type="button"
+            className={cn(
+              "flex-1 rounded-full px-4 py-2 text-sm font-medium transition",
+              activeTab === tab
+                ? "bg-[var(--brand-navy)] text-white"
+                : "text-[var(--brand-muted)] hover:bg-[var(--brand-soft)] hover:text-[var(--brand-navy)]",
+            )}
+            onClick={() => setActiveTab(tab as AdminTab)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "events" ? <EventsAdminPanel canManageAll={canManageAll} /> : null}
+
+      {activeTab === "directory" ? (
+      <>
       <div className="admin-no-print flex flex-col gap-3 rounded-3xl border border-[var(--brand-border)] bg-white p-4 shadow-sm shadow-slate-900/5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-semibold text-[var(--brand-navy)]">Church directory</p>
@@ -514,7 +549,7 @@ export function MemberDirectoryDashboard() {
                           "grid w-full grid-cols-[1fr_auto] gap-3 border-b border-[var(--brand-border)] px-4 py-3 text-left transition hover:bg-[var(--brand-soft)]",
                           selectedMember?.id === member.id && "bg-[var(--brand-burgundy-soft)]",
                         )}
-                        onClick={() => setSelectedMemberId(member.id)}
+                        onClick={() => openProfileModal(member.id)}
                       >
                         <span>
                           <span className="block font-semibold text-[var(--brand-navy)]">
@@ -625,7 +660,7 @@ export function MemberDirectoryDashboard() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <CardTitle id="member-profile-title">
-                    {selectedMember.firstName} {selectedMember.lastName}
+                    {profileModalMode === "edit" ? "Edit profile" : `${selectedMember.firstName} ${selectedMember.lastName}`}
                   </CardTitle>
                   <p className="mt-1 text-sm text-[var(--brand-muted)]">
                     {selectedMember.deaconGroup ?? "No deacon group listed"}
@@ -642,6 +677,57 @@ export function MemberDirectoryDashboard() {
               </div>
             </CardHeader>
             <CardContent className="max-h-[68vh] space-y-4 overflow-y-auto p-5">
+              {profileModalMode === "edit" ? (
+                <form onSubmit={handleSave} className="grid gap-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} placeholder="First name" required />
+                    <Input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} placeholder="Last name" required />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Input value={form.birthdayMonthDay} onChange={(e) => setForm({ ...form, birthdayMonthDay: e.target.value })} placeholder="Birthday MM-DD" />
+                    <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" />
+                  </div>
+                  <Input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder="Email"
+                    disabled={!canManageAll}
+                  />
+                  <Input value={form.spouseName} onChange={(e) => setForm({ ...form, spouseName: e.target.value })} placeholder="Spouse name" />
+                  <Input value={form.children} onChange={(e) => setForm({ ...form, children: e.target.value })} placeholder="Children, separated by commas" />
+                  <Input value={form.ministryInterests} onChange={(e) => setForm({ ...form, ministryInterests: e.target.value })} placeholder="Ministry interests, separated by commas" />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Input value={form.deaconGroup} onChange={(e) => setForm({ ...form, deaconGroup: e.target.value })} placeholder="Deacon group" />
+                    {canManageAll ? (
+                      <select
+                        value={form.status}
+                        onChange={(event) => setForm({ ...form, status: event.target.value as MemberStatus })}
+                        className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="deceased">Deceased</option>
+                      </select>
+                    ) : (
+                      <Input value={form.status} disabled />
+                    )}
+                  </div>
+                  {canManageAll ? (
+                    <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Private notes" />
+                  ) : null}
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button type="submit" disabled={isSaving}>
+                      {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                      Save profile
+                    </Button>
+                    <Button type="button" variant="secondary" onClick={() => setProfileModalMode("view")}>
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <>
               <span className={cn("inline-flex rounded-full border px-3 py-1 text-xs font-semibold capitalize", statusStyles[selectedMember.status])}>
                 {selectedMember.status}
               </span>
@@ -673,14 +759,18 @@ export function MemberDirectoryDashboard() {
                 ))}
               </div>
               {canEditMember(selectedMember, currentUserEmail, directoryRole) ? (
-                <Button type="button" variant="secondary" onClick={() => handleEditMember(selectedMember)}>
+                <Button type="button" variant="secondary" onClick={() => startModalEdit(selectedMember)}>
                   <SquarePen className="h-4 w-4" />
                   Edit profile
                 </Button>
               ) : null}
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
+      ) : null}
+      </>
       ) : null}
     </div>
   );

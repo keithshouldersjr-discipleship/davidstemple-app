@@ -8,6 +8,7 @@ export type SupabaseEventRow = {
   time: string | null;
   location: string | null;
   registration_url: string | null;
+  flyer_url: string | null;
 };
 
 export type SupabaseChurchInfoRow = {

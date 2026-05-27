@@ -1,4 +1,4 @@
-import { EventCard } from "@/components/events/event-card";
+import { EventsBrowser } from "@/components/events/events-browser";
 import { getEvents } from "@/lib/data";
 
 export const revalidate = 300;
@@ -18,11 +18,7 @@ export default async function EventsPage() {
           David&apos;s Temple.
         </p>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {events.map((event) => (
-          <EventCard key={event.id} event={event} />
-        ))}
-      </div>
+      <EventsBrowser events={events} />
     </main>
   );
 }

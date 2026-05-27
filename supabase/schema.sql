@@ -6,9 +6,13 @@ create table if not exists public.events (
   time text,
   location text,
   registration_url text,
+  flyer_url text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.events
+add column if not exists flyer_url text;
 
 create table if not exists public.church_info (
   id text primary key,
@@ -180,7 +184,7 @@ on conflict (id) do update set
   sort_order = excluded.sort_order,
   updated_at = now();
 
-insert into public.events (id, title, description, date, time, location)
+insert into public.events (id, title, description, date, time, location, flyer_url)
 values
   (
     'church-anniversary-2026-05-24',
@@ -188,7 +192,8 @@ values
     'From the 2026 Ministry Events Calendar.',
     '2026-05-24',
     'Time to be announced',
-    'Location to be announced'
+    'Location to be announced',
+    null
   ),
   (
     'relay-for-life-2026-05-30',
@@ -196,7 +201,8 @@ values
     'From the 2026 Ministry Events Calendar.',
     '2026-05-30',
     'Time to be announced',
-    'Location to be announced'
+    'Location to be announced',
+    null
   ),
   (
     'church-carnival-2026-05-30',
@@ -204,7 +210,8 @@ values
     'From the 2026 Ministry Events Calendar.',
     '2026-05-30',
     'Time to be announced',
-    'Location to be announced'
+    'Location to be announced',
+    null
   )
 on conflict (id) do update set
   title = excluded.title,
@@ -212,4 +219,5 @@ on conflict (id) do update set
   date = excluded.date,
   time = excluded.time,
   location = excluded.location,
+  flyer_url = excluded.flyer_url,
   updated_at = now();

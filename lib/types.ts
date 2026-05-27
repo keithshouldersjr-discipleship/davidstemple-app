@@ -43,6 +43,7 @@ export type Event = {
   time: string;
   location: string;
   registrationUrl?: string;
+  flyerUrl?: string;
 };
 
 export type MinistryContact = {
