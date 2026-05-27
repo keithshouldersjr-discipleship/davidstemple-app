@@ -71,7 +71,7 @@ function toMemberProfile(row: SupabaseMemberProfileRow): MemberProfile {
     firstName: row.first_name,
     lastName: row.last_name,
     birthdayMonthDay: row.birthday_month_day ?? undefined,
-    phone: row.phone ?? undefined,
+    phone: row.phone ? formatPhoneNumber(row.phone) : undefined,
     email: row.email ?? undefined,
     spouseName: row.spouse_name ?? undefined,
     children: row.children ?? [],
@@ -89,13 +89,41 @@ function splitList(value: string) {
     .filter(Boolean);
 }
 
+function formatPhoneNumber(value?: string) {
+  const digits = (value ?? "").replace(/\D/g, "");
+
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+
+  return value ?? "";
+}
+
+function normalizePhoneNumber(value: string) {
+  const digits = value.replace(/\D/g, "");
+
+  if (digits.length === 10) {
+    return formatPhoneNumber(digits);
+  }
+
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return formatPhoneNumber(digits);
+  }
+
+  return value.trim();
+}
+
 function profileToForm(profile: MemberProfile): MemberFormState {
   return {
     id: profile.id,
     firstName: profile.firstName,
     lastName: profile.lastName,
     birthdayMonthDay: profile.birthdayMonthDay ?? "",
-    phone: profile.phone ?? "",
+    phone: formatPhoneNumber(profile.phone),
     email: profile.email ?? "",
     spouseName: profile.spouseName ?? "",
     children: profile.children.join(", "),
@@ -116,7 +144,7 @@ function canEditMember(member: MemberProfile, currentUserEmail: string, role: Di
 
 function getProfileFields(member: MemberProfile) {
   return [
-    ["Phone", member.phone],
+    ["Phone", formatPhoneNumber(member.phone)],
     ["Email", member.email],
     ["Birthday", member.birthdayMonthDay],
     ["Spouse", member.spouseName],
@@ -309,7 +337,7 @@ export function MemberDirectoryDashboard() {
       first_name: form.firstName.trim(),
       last_name: form.lastName.trim(),
       birthday_month_day: form.birthdayMonthDay.trim() || null,
-      phone: form.phone.trim() || null,
+      phone: normalizePhoneNumber(form.phone) || null,
       email: form.email.trim() || null,
       spouse_name: form.spouseName.trim() || null,
       children: splitList(form.children),
@@ -561,7 +589,7 @@ export function MemberDirectoryDashboard() {
                         </span>
                         <span className="flex items-center gap-2 text-sm font-medium text-[var(--brand-muted)]">
                           <Phone className="h-4 w-4 text-[var(--brand-burgundy)]" />
-                          {member.phone ?? "No phone"}
+                          {formatPhoneNumber(member.phone) || "No phone"}
                         </span>
                       </button>
                     ))}
@@ -596,7 +624,7 @@ export function MemberDirectoryDashboard() {
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Input value={form.birthdayMonthDay} onChange={(e) => setForm({ ...form, birthdayMonthDay: e.target.value })} placeholder="Birthday MM-DD" />
-                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" />
+                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: formatPhoneNumber(e.target.value) })} placeholder="Phone" />
                 </div>
                 <Input
                   type="email"
@@ -609,7 +637,18 @@ export function MemberDirectoryDashboard() {
                 <Input value={form.children} onChange={(e) => setForm({ ...form, children: e.target.value })} placeholder="Children, separated by commas" />
                 <Input value={form.ministryInterests} onChange={(e) => setForm({ ...form, ministryInterests: e.target.value })} placeholder="Ministry interests, separated by commas" />
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Input value={form.deaconGroup} onChange={(e) => setForm({ ...form, deaconGroup: e.target.value })} placeholder="Deacon group" />
+                  <select
+                    value={form.deaconGroup}
+                    onChange={(event) => setForm({ ...form, deaconGroup: event.target.value })}
+                    className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
+                  >
+                    <option value="">Select deacon group</option>
+                    {deaconGroups.map((group) => (
+                      <option key={group} value={group}>
+                        {group}
+                      </option>
+                    ))}
+                  </select>
                   {canManageAll ? (
                     <select
                       value={form.status}
@@ -685,7 +724,7 @@ export function MemberDirectoryDashboard() {
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Input value={form.birthdayMonthDay} onChange={(e) => setForm({ ...form, birthdayMonthDay: e.target.value })} placeholder="Birthday MM-DD" />
-                    <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" />
+                    <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: formatPhoneNumber(e.target.value) })} placeholder="Phone" />
                   </div>
                   <Input
                     type="email"
@@ -698,7 +737,18 @@ export function MemberDirectoryDashboard() {
                   <Input value={form.children} onChange={(e) => setForm({ ...form, children: e.target.value })} placeholder="Children, separated by commas" />
                   <Input value={form.ministryInterests} onChange={(e) => setForm({ ...form, ministryInterests: e.target.value })} placeholder="Ministry interests, separated by commas" />
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <Input value={form.deaconGroup} onChange={(e) => setForm({ ...form, deaconGroup: e.target.value })} placeholder="Deacon group" />
+                    <select
+                      value={form.deaconGroup}
+                      onChange={(event) => setForm({ ...form, deaconGroup: event.target.value })}
+                      className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
+                    >
+                      <option value="">Select deacon group</option>
+                      {deaconGroups.map((group) => (
+                        <option key={group} value={group}>
+                          {group}
+                        </option>
+                      ))}
+                    </select>
                     {canManageAll ? (
                       <select
                         value={form.status}
