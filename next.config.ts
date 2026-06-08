@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
 
     return [
       {
+        source: "/dtsocial/api/:path*",
+        destination: `${dtSocialOrigin}/api/:path*`
+      },
+      {
         source: "/dtsocial",
         destination: `${dtSocialOrigin}/dtsocial`
       },
