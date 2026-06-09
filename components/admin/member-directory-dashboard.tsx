@@ -44,6 +44,12 @@ type DirectoryRole = "owner" | "admin" | "leader" | "member" | "none";
 type AdminTab = "directory" | "events";
 type ProfileModalMode = "view" | "edit";
 
+const communicationsManagerEmails = [
+  "keithshouldersjr@gmail.com",
+  "jonesmi411@yahoo.com",
+  "karomc1987@gmail.com",
+];
+
 const emptyForm: MemberFormState = {
   firstName: "",
   lastName: "",
@@ -128,6 +134,14 @@ function normalizePhoneNumber(value: string) {
   return value.trim();
 }
 
+function getInitialAdminTab(): AdminTab {
+  if (typeof window === "undefined") {
+    return "directory";
+  }
+
+  return new URLSearchParams(window.location.search).get("tab") === "events" ? "events" : "directory";
+}
+
 function profileToForm(profile: MemberProfile): MemberFormState {
   return {
     id: profile.id,
@@ -182,10 +196,12 @@ export function MemberDirectoryDashboard() {
   const [directoryRole, setDirectoryRole] = useState<DirectoryRole>("none");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<AdminTab>("directory");
+  const [activeTab, setActiveTab] = useState<AdminTab>(getInitialAdminTab);
   const [profileModalMode, setProfileModalMode] = useState<ProfileModalMode>("view");
 
   const canManageAll = directoryRole === "owner" || directoryRole === "admin";
+  const isCommunicationManager = communicationsManagerEmails.includes(currentUserEmail);
+  const canManageEvents = canManageAll || isCommunicationManager;
   const canViewFullDirectory =
     directoryRole === "owner" || directoryRole === "admin" || directoryRole === "leader";
 
@@ -285,8 +301,11 @@ export function MemberDirectoryDashboard() {
       setIsLoading(false);
 
       if (signedIn) {
-        void loadCurrentUserRole();
-        void loadMembers();
+        loadCurrentUserRole().then((role) => {
+          if (role !== "none") {
+            void loadMembers();
+          }
+        });
       }
     });
   }, [loadCurrentUserRole, loadMembers, supabase]);
@@ -309,8 +328,13 @@ export function MemberDirectoryDashboard() {
     }
 
     setIsSignedIn(true);
-    await loadCurrentUserRole();
-    await loadMembers();
+    const role = await loadCurrentUserRole();
+
+    if (role !== "none") {
+      await loadMembers();
+    } else {
+      setMembers([]);
+    }
   }
 
   async function handleSignOut() {
@@ -458,14 +482,18 @@ export function MemberDirectoryDashboard() {
                 ? "bg-[var(--brand-navy)] text-white"
                 : "text-[var(--brand-muted)] hover:bg-[var(--brand-soft)] hover:text-[var(--brand-navy)]",
             )}
-            onClick={() => setActiveTab(tab as AdminTab)}
+            onClick={() => {
+              const nextTab = tab as AdminTab;
+              setActiveTab(nextTab);
+              window.history.replaceState(null, "", nextTab === "events" ? "/admin?tab=events" : "/admin");
+            }}
           >
             {label}
           </button>
         ))}
       </div>
 
-      {activeTab === "events" ? <EventsAdminPanel canManageAll={canManageAll} /> : null}
+      {activeTab === "events" ? <EventsAdminPanel canManageAll={canManageEvents} /> : null}
 
       {activeTab === "directory" ? (
       <>

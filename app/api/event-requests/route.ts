@@ -14,7 +14,12 @@ function clean(value?: string) {
   return value?.trim() ?? "";
 }
 
-async function sendEventRequestEmail(request: Required<EventRequestBody>) {
+async function sendEventRequestEmail(request: EventRequestBody & {
+  title: string;
+  date: string;
+  time: string;
+  ministry: string;
+}) {
   const apiKey = process.env.RESEND_API_KEY;
   const recipients = process.env.EVENT_REQUEST_RECIPIENTS?.split(",")
     .map((email) => email.trim())
@@ -24,7 +29,7 @@ async function sendEventRequestEmail(request: Required<EventRequestBody>) {
     return;
   }
 
-  const adminUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://davidstemple.app"}/admin`;
+  const adminUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://davidstemple.app"}/admin?tab=events`;
   const subject = `New David's Temple Event: ${request.title}`;
   const text = [
     subject,
@@ -65,9 +70,9 @@ export async function POST(request: Request) {
   const location = clean(body.location);
   const description = clean(body.description);
 
-  if (!title || !date || !time || !ministry || !location || !description) {
+  if (!title || !date || !time || !ministry) {
     return NextResponse.json(
-      { message: "Please complete all event request fields." },
+      { message: "Please complete the title, date, time, and ministry fields." },
       { status: 400 },
     );
   }

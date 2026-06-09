@@ -3,8 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { createSupabaseBrowserClient } from "@/lib/supabase";
 
 const navLinks = [
   { href: "/ask", label: "Ask" },
@@ -14,8 +15,26 @@ const navLinks = [
   { href: "/admin", label: "Admin" },
 ];
 
+const communicationsManagerEmails = [
+  "keithshouldersjr@gmail.com",
+  "jonesmi411@yahoo.com",
+  "karomc1987@gmail.com",
+];
+
 export function SiteHeader() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showCommunicationsLink, setShowCommunicationsLink] = useState(false);
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+
+    if (!supabase) return;
+
+    supabase.auth.getUser().then(({ data }) => {
+      const email = data.user?.email?.toLowerCase();
+      setShowCommunicationsLink(Boolean(email && communicationsManagerEmails.includes(email)));
+    });
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[var(--brand-navy)]/96 shadow-sm backdrop-blur-xl">
@@ -58,6 +77,15 @@ export function SiteHeader() {
                 {link.label}
               </Link>
             ))}
+            {showCommunicationsLink ? (
+              <Link
+                href="/admin?tab=events"
+                className="rounded-2xl px-4 py-3 text-base font-medium !text-white hover:bg-white/10"
+                onClick={() => setIsOpen(false)}
+              >
+                Communications
+              </Link>
+            ) : null}
           </div>
         </nav>
       ) : null}
