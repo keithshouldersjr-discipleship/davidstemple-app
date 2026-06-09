@@ -14,6 +14,19 @@ function clean(value?: string) {
   return value?.trim() ?? "";
 }
 
+function parseEmailRecipients(value?: string) {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const recipients = (value ?? "")
+    .split(/[;,]/)
+    .map((email) => email.trim().replace(/^["']|["']$/g, ""))
+    .filter(Boolean);
+
+  return {
+    validRecipients: recipients.filter((email) => emailPattern.test(email)),
+    invalidRecipients: recipients.filter((email) => !emailPattern.test(email)),
+  };
+}
+
 async function sendEventRequestEmail(request: EventRequestBody & {
   title: string;
   date: string;
@@ -22,16 +35,18 @@ async function sendEventRequestEmail(request: EventRequestBody & {
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EVENT_REQUEST_FROM ?? "David's Temple App <onboarding@resend.dev>";
-  const recipients = process.env.EVENT_REQUEST_RECIPIENTS?.split(",")
-    .map((email) => email.trim())
-    .filter(Boolean);
+  const { validRecipients, invalidRecipients } = parseEmailRecipients(process.env.EVENT_REQUEST_RECIPIENTS);
 
   if (!apiKey) {
     console.warn("Event request email skipped: RESEND_API_KEY is not configured.");
     return;
   }
 
-  if (!recipients?.length) {
+  if (invalidRecipients.length) {
+    console.warn("Event request email has invalid recipients", { invalidRecipients });
+  }
+
+  if (!validRecipients.length) {
     console.warn("Event request email skipped: EVENT_REQUEST_RECIPIENTS is not configured.");
     return;
   }
@@ -61,7 +76,7 @@ async function sendEventRequestEmail(request: EventRequestBody & {
     },
     body: JSON.stringify({
       from,
-      to: recipients,
+      to: validRecipients,
       subject,
       text,
     }),
@@ -73,14 +88,14 @@ async function sendEventRequestEmail(request: EventRequestBody & {
     console.error("Resend rejected event request email", {
       status: response.status,
       from,
-      recipientCount: recipients.length,
+      recipientCount: validRecipients.length,
       result,
     });
     return;
   }
 
   console.info("Event request email accepted by Resend", {
-    recipientCount: recipients.length,
+    recipientCount: validRecipients.length,
     result,
   });
 }
