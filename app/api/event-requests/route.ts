@@ -21,11 +21,18 @@ async function sendEventRequestEmail(request: EventRequestBody & {
   ministry: string;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EVENT_REQUEST_FROM ?? "David's Temple App <onboarding@resend.dev>";
   const recipients = process.env.EVENT_REQUEST_RECIPIENTS?.split(",")
     .map((email) => email.trim())
     .filter(Boolean);
 
-  if (!apiKey || !recipients?.length) {
+  if (!apiKey) {
+    console.warn("Event request email skipped: RESEND_API_KEY is not configured.");
+    return;
+  }
+
+  if (!recipients?.length) {
+    console.warn("Event request email skipped: EVENT_REQUEST_RECIPIENTS is not configured.");
     return;
   }
 
@@ -46,18 +53,35 @@ async function sendEventRequestEmail(request: EventRequestBody & {
     `Review and approve this event in the admin portal: ${adminUrl}`,
   ].join("\n");
 
-  await fetch("https://api.resend.com/emails", {
+  const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: process.env.EVENT_REQUEST_FROM ?? "David's Temple App <onboarding@resend.dev>",
+      from,
       to: recipients,
       subject,
       text,
     }),
+  });
+
+  const result = (await response.json().catch(() => null)) as unknown;
+
+  if (!response.ok) {
+    console.error("Resend rejected event request email", {
+      status: response.status,
+      from,
+      recipientCount: recipients.length,
+      result,
+    });
+    return;
+  }
+
+  console.info("Event request email accepted by Resend", {
+    recipientCount: recipients.length,
+    result,
   });
 }
 
