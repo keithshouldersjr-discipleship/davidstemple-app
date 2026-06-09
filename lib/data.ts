@@ -39,7 +39,7 @@ export async function getEvents(): Promise<Event[]> {
 
   const { data, error } = await supabase
     .from("events")
-    .select("id,title,description,date,time,location,registration_url,flyer_url")
+    .select("id,title,description,date,time,ministry,location,registration_url,flyer_url")
     .gte("date", new Date().toISOString().slice(0, 10))
     .order("date", { ascending: true })
     .order("time", { ascending: true });
@@ -54,12 +54,13 @@ export async function getEvents(): Promise<Event[]> {
         .order("time", { ascending: true });
 
       if (!legacyError && legacyData) {
-        return (legacyData as Omit<SupabaseEventRow, "flyer_url">[]).map((event) => ({
+        return (legacyData as Omit<SupabaseEventRow, "flyer_url" | "ministry">[]).map((event) => ({
           id: event.id,
           title: event.title,
           description: event.description ?? "David's Temple church event.",
           date: formatEventDate(event.date),
           time: event.time ?? "Time to be announced",
+          ministry: undefined,
           location: event.location ?? "Location to be announced",
           registrationUrl: event.registration_url ?? undefined,
         }));
@@ -76,6 +77,7 @@ export async function getEvents(): Promise<Event[]> {
     description: event.description ?? "David's Temple church event.",
     date: formatEventDate(event.date),
     time: event.time ?? "Time to be announced",
+    ministry: event.ministry ?? undefined,
     location: event.location ?? "Location to be announced",
     registrationUrl: event.registration_url ?? undefined,
     flyerUrl: event.flyer_url ?? undefined,

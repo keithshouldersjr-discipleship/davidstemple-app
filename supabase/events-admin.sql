@@ -4,6 +4,25 @@
 alter table public.events
 add column if not exists flyer_url text;
 
+alter table public.events
+add column if not exists ministry text;
+
+create table if not exists public.event_requests (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  date date not null,
+  time text,
+  ministry text,
+  location text,
+  description text,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  approved_event_id text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.event_requests enable row level security;
+
 create or replace function public.current_directory_role()
 returns text
 language sql
@@ -105,6 +124,28 @@ with check (public.is_events_admin());
 drop policy if exists "Admins can update events" on public.events;
 create policy "Admins can update events"
 on public.events
+for update
+to authenticated
+using (public.is_events_admin())
+with check (public.is_events_admin());
+
+drop policy if exists "Anyone can submit event requests" on public.event_requests;
+create policy "Anyone can submit event requests"
+on public.event_requests
+for insert
+to anon, authenticated
+with check (status = 'pending');
+
+drop policy if exists "Admins can read event requests" on public.event_requests;
+create policy "Admins can read event requests"
+on public.event_requests
+for select
+to authenticated
+using (public.is_events_admin());
+
+drop policy if exists "Admins can update event requests" on public.event_requests;
+create policy "Admins can update event requests"
+on public.event_requests
 for update
 to authenticated
 using (public.is_events_admin())

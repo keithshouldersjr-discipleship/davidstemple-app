@@ -41,6 +41,7 @@ export type Event = {
   description: string;
   date: string;
   time: string;
+  ministry?: string;
   location: string;
   registrationUrl?: string;
   flyerUrl?: string;

@@ -6,9 +6,23 @@ export type SupabaseEventRow = {
   description: string | null;
   date: string;
   time: string | null;
+  ministry: string | null;
   location: string | null;
   registration_url: string | null;
   flyer_url: string | null;
+};
+
+export type SupabaseEventRequestRow = {
+  id: string;
+  title: string;
+  date: string;
+  time: string | null;
+  ministry: string | null;
+  location: string | null;
+  description: string | null;
+  status: "pending" | "approved" | "rejected";
+  approved_event_id: string | null;
+  created_at: string;
 };
 
 export type SupabaseChurchInfoRow = {

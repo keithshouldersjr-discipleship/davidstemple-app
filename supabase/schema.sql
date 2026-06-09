@@ -4,6 +4,7 @@ create table if not exists public.events (
   description text,
   date date not null,
   time text,
+  ministry text,
   location text,
   registration_url text,
   flyer_url text,
@@ -13,6 +14,23 @@ create table if not exists public.events (
 
 alter table public.events
 add column if not exists flyer_url text;
+
+alter table public.events
+add column if not exists ministry text;
+
+create table if not exists public.event_requests (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  date date not null,
+  time text,
+  ministry text,
+  location text,
+  description text,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  approved_event_id text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
 
 create table if not exists public.church_info (
   id text primary key,
@@ -39,6 +57,7 @@ create table if not exists public.ministry_contacts (
 );
 
 alter table public.events enable row level security;
+alter table public.event_requests enable row level security;
 alter table public.church_info enable row level security;
 alter table public.ministry_contacts enable row level security;
 
@@ -48,6 +67,13 @@ on public.events
 for select
 to anon
 using (true);
+
+drop policy if exists "Anyone can submit event requests" on public.event_requests;
+create policy "Anyone can submit event requests"
+on public.event_requests
+for insert
+to anon, authenticated
+with check (status = 'pending');
 
 drop policy if exists "Public can read approved church info" on public.church_info;
 create policy "Public can read approved church info"
@@ -184,7 +210,7 @@ on conflict (id) do update set
   sort_order = excluded.sort_order,
   updated_at = now();
 
-insert into public.events (id, title, description, date, time, location, flyer_url)
+insert into public.events (id, title, description, date, time, ministry, location, flyer_url)
 values
   (
     'church-anniversary-2026-05-24',
@@ -192,6 +218,7 @@ values
     'From the 2026 Ministry Events Calendar.',
     '2026-05-24',
     'Time to be announced',
+    null,
     'Location to be announced',
     null
   ),
@@ -201,6 +228,7 @@ values
     'From the 2026 Ministry Events Calendar.',
     '2026-05-30',
     'Time to be announced',
+    null,
     'Location to be announced',
     null
   ),
@@ -210,6 +238,7 @@ values
     'From the 2026 Ministry Events Calendar.',
     '2026-05-30',
     'Time to be announced',
+    null,
     'Location to be announced',
     null
   )
@@ -218,6 +247,7 @@ on conflict (id) do update set
   description = excluded.description,
   date = excluded.date,
   time = excluded.time,
+  ministry = excluded.ministry,
   location = excluded.location,
   flyer_url = excluded.flyer_url,
   updated_at = now();
