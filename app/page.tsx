@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, CalendarDays, MessageCircle } from "lucide-react";
 import { ChatPanel } from "@/components/assistant/chat-panel";
+import { EventRequestButton } from "@/components/events/event-request-button";
 import { ResourceCard } from "@/components/resources/resource-card";
 import { Button } from "@/components/ui/button";
 import { getEvents } from "@/lib/data";
@@ -91,16 +92,19 @@ export default async function Home() {
                 <CalendarDays className="h-5 w-5 text-[var(--brand-burgundy)]" />
                 <p className="font-semibold">Calendar preview</p>
               </div>
-              <Link href="/events">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                >
-                  View full calendar
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <div className="grid gap-2 sm:flex sm:items-center">
+                <EventRequestButton size="sm" className="w-full sm:w-auto" />
+                <Link href="/events">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                  >
+                    View full calendar
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
           <div className="max-h-[26rem] overflow-y-auto overscroll-contain scroll-smooth divide-y divide-[var(--brand-border)]">
