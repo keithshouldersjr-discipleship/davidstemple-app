@@ -17,9 +17,17 @@ create table if not exists public.event_requests (
   description text,
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
   approved_event_id text,
+  approved_by text,
+  approved_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.event_requests
+add column if not exists approved_by text;
+
+alter table public.event_requests
+add column if not exists approved_at timestamptz;
 
 alter table public.event_requests enable row level security;
 

@@ -81,6 +81,7 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [events, setEvents] = useState<SupabaseEventRow[]>([]);
   const [eventRequests, setEventRequests] = useState<SupabaseEventRequestRow[]>([]);
+  const [approvedEventRequests, setApprovedEventRequests] = useState<SupabaseEventRequestRow[]>([]);
   const [form, setForm] = useState<EventFormState>(emptyEventForm);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(Boolean(supabase));
@@ -89,6 +90,21 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
   const [flyerFile, setFlyerFile] = useState<File | null>(null);
   const [eventMinistryFilter, setEventMinistryFilter] = useState("all");
   const [eventDateFilter, setEventDateFilter] = useState("");
+
+  const currentMonthRange = useMemo(() => {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
+    return {
+      start: start.toISOString(),
+      end: end.toISOString(),
+      label: new Intl.DateTimeFormat("en-US", {
+        month: "long",
+        year: "numeric",
+      }).format(start),
+    };
+  }, []);
 
   const ministryOptions = useMemo(() => {
     const values = [...events, ...eventRequests]
@@ -135,7 +151,7 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
 
     const { data, error } = await supabase
       .from("event_requests")
-      .select("id,title,date,time,ministry,location,description,status,approved_event_id,created_at")
+      .select("id,title,date,time,ministry,location,description,status,approved_event_id,approved_by,approved_at,created_at")
       .eq("status", "pending")
       .order("created_at", { ascending: false });
 
@@ -147,14 +163,34 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
     }
   }, [supabase]);
 
+  const loadApprovedEventRequests = useCallback(async () => {
+    if (!supabase) return;
+
+    const { data, error } = await supabase
+      .from("event_requests")
+      .select("id,title,date,time,ministry,location,description,status,approved_event_id,approved_by,approved_at,created_at")
+      .eq("status", "approved")
+      .gte("approved_at", currentMonthRange.start)
+      .lt("approved_at", currentMonthRange.end)
+      .order("approved_at", { ascending: false });
+
+    if (error) {
+      setMessage("I could not load approved event requests. Make sure events-admin.sql has been run in Supabase.");
+      setApprovedEventRequests([]);
+    } else {
+      setApprovedEventRequests(data as SupabaseEventRequestRow[]);
+    }
+  }, [currentMonthRange.end, currentMonthRange.start, supabase]);
+
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       void loadEvents();
       void loadEventRequests();
+      void loadApprovedEventRequests();
     }, 0);
 
     return () => window.clearTimeout(timeout);
-  }, [loadEventRequests, loadEvents]);
+  }, [loadApprovedEventRequests, loadEventRequests, loadEvents]);
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -229,6 +265,9 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
 
     setApprovingRequestId(request.id);
     setMessage("");
+    const { data: userData } = await supabase.auth.getUser();
+    const approvedBy = userData.user?.email?.toLowerCase() ?? "Unknown approver";
+    const approvedAt = new Date().toISOString();
 
     const eventId = `${slugify(request.title)}-${request.date}`;
     const payload = {
@@ -256,6 +295,8 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
       .update({
         status: "approved",
         approved_event_id: eventId,
+        approved_by: approvedBy,
+        approved_at: approvedAt,
         updated_at: new Date().toISOString(),
       })
       .eq("id", request.id);
@@ -263,7 +304,7 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
     if (requestError) {
       setMessage(requestError.message);
     } else {
-      await Promise.all([loadEvents(), loadEventRequests()]);
+      await Promise.all([loadEvents(), loadEventRequests(), loadApprovedEventRequests()]);
     }
 
     setApprovingRequestId(null);
@@ -311,6 +352,52 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
               ))
             ) : (
               <p className="p-5 text-sm text-[var(--brand-muted)]">There are no pending event requests.</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-[var(--brand-border)]">
+          <CardTitle>Approved this month</CardTitle>
+          <p className="text-sm text-[var(--brand-muted)]">
+            Event requests approved in {currentMonthRange.label}, including the communications manager who approved them.
+          </p>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="max-h-80 overflow-x-auto overflow-y-auto">
+            {approvedEventRequests.length ? (
+              <table className="w-full min-w-[720px] text-left text-sm">
+                <thead className="sticky top-0 bg-[var(--brand-soft)] text-xs uppercase tracking-wide text-[var(--brand-muted)]">
+                  <tr>
+                    <th className="px-5 py-3 font-semibold">Event</th>
+                    <th className="px-5 py-3 font-semibold">Event date</th>
+                    <th className="px-5 py-3 font-semibold">Ministry</th>
+                    <th className="px-5 py-3 font-semibold">Approved by</th>
+                    <th className="px-5 py-3 font-semibold">Approved</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--brand-border)]">
+                  {approvedEventRequests.map((request) => (
+                    <tr key={request.id} className="align-top">
+                      <td className="px-5 py-4 font-medium text-[var(--brand-navy)]">{request.title}</td>
+                      <td className="px-5 py-4 text-[var(--brand-muted)]">
+                        {formatDisplayDate(request.date)}
+                        {request.time ? ` · ${request.time}` : ""}
+                      </td>
+                      <td className="px-5 py-4 text-[var(--brand-muted)]">{request.ministry ?? "Ministry not listed"}</td>
+                      <td className="px-5 py-4 text-[var(--brand-muted)]">{request.approved_by ?? "Unknown approver"}</td>
+                      <td className="px-5 py-4 text-[var(--brand-muted)]">
+                        {request.approved_at ? formatDisplayDate(request.approved_at.slice(0, 10)) : "Not recorded"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="p-5 text-sm text-[var(--brand-muted)]">
+                No event requests have been approved yet in {currentMonthRange.label}.
+              </p>
             )}
           </div>
         </CardContent>

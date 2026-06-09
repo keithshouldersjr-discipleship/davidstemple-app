@@ -22,6 +22,8 @@ export type SupabaseEventRequestRow = {
   description: string | null;
   status: "pending" | "approved" | "rejected";
   approved_event_id: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
   created_at: string;
 };
 
