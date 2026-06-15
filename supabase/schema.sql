@@ -7,16 +7,28 @@ create table if not exists public.events (
   ministry text,
   location text,
   registration_url text,
-  flyer_url text,
+  leader_name text,
+  leader_email text,
+  leader_phone text,
+  support_needed text[] not null default '{}',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table public.events
-add column if not exists flyer_url text;
+add column if not exists ministry text;
 
 alter table public.events
-add column if not exists ministry text;
+add column if not exists leader_name text;
+
+alter table public.events
+add column if not exists leader_email text;
+
+alter table public.events
+add column if not exists leader_phone text;
+
+alter table public.events
+add column if not exists support_needed text[] not null default '{}';
 
 create table if not exists public.event_requests (
   id uuid primary key default gen_random_uuid(),
@@ -30,6 +42,23 @@ create table if not exists public.event_requests (
   approved_event_id text,
   approved_by text,
   approved_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.connection_requests (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text,
+  phone text,
+  preferred_contact text,
+  interest_area text not null,
+  source_type text not null default 'general',
+  source_title text not null,
+  source_id text,
+  support_needed text[] not null default '{}',
+  message text,
+  status text not null default 'new' check (status in ('new', 'contacted', 'closed')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -66,6 +95,7 @@ create table if not exists public.ministry_contacts (
 
 alter table public.events enable row level security;
 alter table public.event_requests enable row level security;
+alter table public.connection_requests enable row level security;
 alter table public.church_info enable row level security;
 alter table public.ministry_contacts enable row level security;
 
@@ -82,6 +112,13 @@ on public.event_requests
 for insert
 to anon, authenticated
 with check (status = 'pending');
+
+drop policy if exists "Anyone can submit connection requests" on public.connection_requests;
+create policy "Anyone can submit connection requests"
+on public.connection_requests
+for insert
+to anon, authenticated
+with check (status = 'new');
 
 drop policy if exists "Public can read approved church info" on public.church_info;
 create policy "Public can read approved church info"
@@ -218,7 +255,7 @@ on conflict (id) do update set
   sort_order = excluded.sort_order,
   updated_at = now();
 
-insert into public.events (id, title, description, date, time, ministry, location, flyer_url)
+insert into public.events (id, title, description, date, time, ministry, location, leader_name, leader_email, leader_phone, support_needed)
 values
   (
     'church-anniversary-2026-05-24',
@@ -228,7 +265,10 @@ values
     'Time to be announced',
     null,
     'Location to be announced',
-    null
+    null,
+    null,
+    null,
+    '{}'
   ),
   (
     'relay-for-life-2026-05-30',
@@ -238,7 +278,10 @@ values
     'Time to be announced',
     null,
     'Location to be announced',
-    null
+    null,
+    null,
+    null,
+    '{}'
   ),
   (
     'church-carnival-2026-05-30',
@@ -248,7 +291,10 @@ values
     'Time to be announced',
     null,
     'Location to be announced',
-    null
+    null,
+    null,
+    null,
+    '{}'
   )
 on conflict (id) do update set
   title = excluded.title,
@@ -257,5 +303,8 @@ on conflict (id) do update set
   time = excluded.time,
   ministry = excluded.ministry,
   location = excluded.location,
-  flyer_url = excluded.flyer_url,
+  leader_name = excluded.leader_name,
+  leader_email = excluded.leader_email,
+  leader_phone = excluded.leader_phone,
+  support_needed = excluded.support_needed,
   updated_at = now();

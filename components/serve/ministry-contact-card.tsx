@@ -1,4 +1,5 @@
 import { Phone, UserRound } from "lucide-react";
+import { InterestButton } from "@/components/connect/interest-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,12 +37,21 @@ export function MinistryContactCard({ contact }: MinistryContactCardProps) {
           <p className="mt-2 font-semibold text-[var(--brand-navy)]">{contact.leaderName}</p>
           <p className="mt-1 text-sm text-[var(--brand-muted)]">{contact.phone}</p>
         </div>
-        <a href={getPhoneHref(contact.phone)} className="block">
-          <Button size="sm" className="w-full">
-            <Phone className="h-4 w-4" />
-            Call or text
-          </Button>
-        </a>
+        <div className="grid gap-2">
+          <InterestButton
+            sourceType="ministry"
+            sourceId={contact.id}
+            sourceTitle={contact.ministryName}
+            interestArea={contact.ministryName}
+            className="w-full"
+          />
+          <a href={getPhoneHref(contact.phone)} className="block">
+            <Button size="sm" variant="secondary" className="w-full">
+              <Phone className="h-4 w-4" />
+              Call or text
+            </Button>
+          </a>
+        </div>
       </CardContent>
     </Card>
   );

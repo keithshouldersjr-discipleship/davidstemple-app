@@ -1,11 +1,20 @@
--- Adds event flyer support and admin write policies for communications.
+-- Adds event leader contacts and admin write policies for communications.
 -- Run this in the Supabase SQL Editor after member-directory.sql.
 
 alter table public.events
-add column if not exists flyer_url text;
+add column if not exists ministry text;
 
 alter table public.events
-add column if not exists ministry text;
+add column if not exists leader_name text;
+
+alter table public.events
+add column if not exists leader_email text;
+
+alter table public.events
+add column if not exists leader_phone text;
+
+alter table public.events
+add column if not exists support_needed text[] not null default '{}';
 
 create table if not exists public.event_requests (
   id uuid primary key default gen_random_uuid(),
@@ -29,7 +38,25 @@ add column if not exists approved_by text;
 alter table public.event_requests
 add column if not exists approved_at timestamptz;
 
+create table if not exists public.connection_requests (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text,
+  phone text,
+  preferred_contact text,
+  interest_area text not null,
+  source_type text not null default 'general',
+  source_title text not null,
+  source_id text,
+  support_needed text[] not null default '{}',
+  message text,
+  status text not null default 'new' check (status in ('new', 'contacted', 'closed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.event_requests enable row level security;
+alter table public.connection_requests enable row level security;
 
 create or replace function public.current_directory_role()
 returns text
@@ -77,50 +104,6 @@ as $$
     );
 $$;
 
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values (
-  'event-flyers',
-  'event-flyers',
-  true,
-  5242880,
-  array['image/jpeg', 'image/png', 'image/webp']
-)
-on conflict (id) do update set
-  public = excluded.public,
-  file_size_limit = excluded.file_size_limit,
-  allowed_mime_types = excluded.allowed_mime_types;
-
-drop policy if exists "Public can view event flyers" on storage.objects;
-create policy "Public can view event flyers"
-on storage.objects
-for select
-to public
-using (bucket_id = 'event-flyers');
-
-drop policy if exists "Admins can upload event flyers" on storage.objects;
-create policy "Admins can upload event flyers"
-on storage.objects
-for insert
-to authenticated
-with check (
-  bucket_id = 'event-flyers'
-  and public.is_events_admin()
-);
-
-drop policy if exists "Admins can update event flyers" on storage.objects;
-create policy "Admins can update event flyers"
-on storage.objects
-for update
-to authenticated
-using (
-  bucket_id = 'event-flyers'
-  and public.is_events_admin()
-)
-with check (
-  bucket_id = 'event-flyers'
-  and public.is_events_admin()
-);
-
 drop policy if exists "Public can read events" on public.events;
 create policy "Public can read events"
 on public.events
@@ -143,12 +126,26 @@ to authenticated
 using (public.is_events_admin())
 with check (public.is_events_admin());
 
+drop policy if exists "Admins can delete events" on public.events;
+create policy "Admins can delete events"
+on public.events
+for delete
+to authenticated
+using (public.is_events_admin());
+
 drop policy if exists "Anyone can submit event requests" on public.event_requests;
 create policy "Anyone can submit event requests"
 on public.event_requests
 for insert
 to anon, authenticated
 with check (status = 'pending');
+
+drop policy if exists "Anyone can submit connection requests" on public.connection_requests;
+create policy "Anyone can submit connection requests"
+on public.connection_requests
+for insert
+to anon, authenticated
+with check (status = 'new');
 
 drop policy if exists "Admins can read event requests" on public.event_requests;
 create policy "Admins can read event requests"
@@ -160,6 +157,21 @@ using (public.is_events_admin());
 drop policy if exists "Admins can update event requests" on public.event_requests;
 create policy "Admins can update event requests"
 on public.event_requests
+for update
+to authenticated
+using (public.is_events_admin())
+with check (public.is_events_admin());
+
+drop policy if exists "Admins can read connection requests" on public.connection_requests;
+create policy "Admins can read connection requests"
+on public.connection_requests
+for select
+to authenticated
+using (public.is_events_admin());
+
+drop policy if exists "Admins can update connection requests" on public.connection_requests;
+create policy "Admins can update connection requests"
+on public.connection_requests
 for update
 to authenticated
 using (public.is_events_admin())

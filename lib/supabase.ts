@@ -9,7 +9,10 @@ export type SupabaseEventRow = {
   ministry: string | null;
   location: string | null;
   registration_url: string | null;
-  flyer_url: string | null;
+  leader_name: string | null;
+  leader_email: string | null;
+  leader_phone: string | null;
+  support_needed: string[] | null;
 };
 
 export type SupabaseEventRequestRow = {

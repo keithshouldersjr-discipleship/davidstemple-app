@@ -44,7 +44,10 @@ export type Event = {
   ministry?: string;
   location: string;
   registrationUrl?: string;
-  flyerUrl?: string;
+  leaderName?: string;
+  leaderEmail?: string;
+  leaderPhone?: string;
+  supportNeeded?: string[];
 };
 
 export type MinistryContact = {

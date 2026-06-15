@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, MessageCircle } from "lucide-react";
+import { ArrowRight, CalendarDays, Mail, MessageCircle, Phone, UserRound, UsersRound } from "lucide-react";
 import { ChatPanel } from "@/components/assistant/chat-panel";
+import { InterestButton } from "@/components/connect/interest-button";
 import { EventRequestButton } from "@/components/events/event-request-button";
 import { ResourceCard } from "@/components/resources/resource-card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,10 @@ function formatMonth(date: Date) {
 
 function formatDay(date: Date) {
   return new Intl.DateTimeFormat("en-US", { day: "2-digit" }).format(date);
+}
+
+function cleanPhone(phone: string) {
+  return phone.replace(/[^\d+]/g, "");
 }
 
 export default async function Home() {
@@ -74,6 +79,38 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="border-y border-[var(--brand-border)] bg-white">
+        <div className="mx-auto grid max-w-6xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-center lg:px-8">
+          <div className="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--brand-burgundy-soft)] text-[var(--brand-burgundy)]">
+              <UsersRound className="h-8 w-8" />
+            </div>
+            <div>
+              <p className="text-sm font-medium uppercase tracking-[0.22em] text-[var(--brand-burgundy)]">This Sunday</p>
+              <h2 className="mt-1 text-2xl font-semibold text-[var(--brand-navy)]">Find your next step before you arrive</h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">
+                Sunday School is listed at 9:00 AM. Ask a question, let someone know you want to connect, or scan upcoming ministry moments.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-2 sm:flex sm:items-center">
+            <InterestButton
+              sourceType="sunday"
+              sourceTitle="This Sunday"
+              interestArea="Getting connected this Sunday"
+              label="Connect with someone"
+              className="w-full sm:w-auto"
+            />
+            <Link href="/ask">
+              <Button variant="secondary" size="sm" className="w-full sm:w-auto">
+                <MessageCircle className="h-4 w-4" />
+                Ask a question
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
@@ -109,9 +146,8 @@ export default async function Home() {
           </div>
           <div className="max-h-[26rem] overflow-y-auto overscroll-contain scroll-smooth divide-y divide-[var(--brand-border)]">
             {upcomingEvents.map(({ event, date }) => (
-              <Link
+              <div
                 key={event.id}
-                href="/events"
                 className="grid min-h-24 grid-cols-[4.5rem_1fr] gap-4 p-4 transition hover:bg-[var(--brand-soft)] sm:grid-cols-[5.25rem_1fr_auto] sm:items-center"
               >
                 <div className="rounded-2xl border border-[var(--brand-burgundy)]/15 bg-[var(--brand-burgundy-soft)] px-3 py-2 text-center">
@@ -129,11 +165,51 @@ export default async function Home() {
                   <p className="mt-1 text-sm leading-6 text-[var(--brand-muted)]">
                     {event.time} · {event.location}
                   </p>
+                  {event.leaderName || event.leaderEmail || event.leaderPhone ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[var(--brand-muted)]">
+                      <span className="inline-flex items-center gap-2 font-medium text-[var(--brand-navy)]">
+                        <UserRound className="h-4 w-4 text-[var(--brand-burgundy)]" />
+                        {event.leaderName ?? "Team leader"}
+                      </span>
+                      {event.leaderEmail ? (
+                        <Link href={`mailto:${event.leaderEmail}?subject=${encodeURIComponent(`I would like to help with ${event.title}`)}`} className="inline-flex items-center gap-1.5 font-medium text-[var(--brand-burgundy)]">
+                          <Mail className="h-4 w-4" />
+                          Email
+                        </Link>
+                      ) : null}
+                      {event.leaderPhone ? (
+                        <Link href={`sms:${cleanPhone(event.leaderPhone)}`} className="inline-flex items-center gap-1.5 font-medium text-[var(--brand-burgundy)]">
+                          <Phone className="h-4 w-4" />
+                          Text
+                        </Link>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {event.supportNeeded?.length ? (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {event.supportNeeded.map((item) => (
+                        <span key={item} className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-xs font-medium text-[var(--brand-navy)]">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
-                <span className="hidden rounded-full border border-[var(--brand-border)] px-4 py-2 text-sm font-medium text-[var(--brand-muted)] sm:inline-flex">
-                  Details
-                </span>
-              </Link>
+                <div className="hidden gap-2 sm:grid">
+                  <InterestButton
+                    sourceType="event"
+                    sourceId={event.id}
+                    sourceTitle={event.title}
+                    interestArea={event.ministry ?? event.title}
+                    supportNeeded={event.supportNeeded}
+                    label="Help"
+                    variant="secondary"
+                  />
+                  <Link href="/events" className="rounded-full border border-[var(--brand-border)] px-4 py-2 text-center text-sm font-medium text-[var(--brand-muted)] transition hover:border-[var(--brand-burgundy)]/35 hover:bg-white">
+                    Details
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarDays, FileUp, Loader2, Plus, Printer, SquarePen } from "lucide-react";
+import { CalendarDays, Loader2, Mail, Phone, Plus, Printer, SquarePen, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,10 @@ type EventFormState = {
   ministry: string;
   location: string;
   registrationUrl: string;
-  flyerUrl: string;
+  leaderName: string;
+  leaderEmail: string;
+  leaderPhone: string;
+  supportNeeded: string;
 };
 
 const emptyEventForm: EventFormState = {
@@ -31,11 +34,11 @@ const emptyEventForm: EventFormState = {
   ministry: "",
   location: "",
   registrationUrl: "",
-  flyerUrl: "",
+  leaderName: "",
+  leaderEmail: "",
+  leaderPhone: "",
+  supportNeeded: "",
 };
-
-const MAX_FLYER_SIZE = 5 * 1024 * 1024;
-const ALLOWED_FLYER_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 type EventsAdminPanelProps = {
   canManageAll: boolean;
@@ -63,6 +66,13 @@ function formatDisplayDate(date: string) {
   }).format(parsed);
 }
 
+function parseSupportNeeded(value: string) {
+  return value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function rowToForm(row: SupabaseEventRow): EventFormState {
   return {
     id: row.id,
@@ -73,7 +83,10 @@ function rowToForm(row: SupabaseEventRow): EventFormState {
     ministry: row.ministry ?? "",
     location: row.location ?? "",
     registrationUrl: row.registration_url ?? "",
-    flyerUrl: row.flyer_url ?? "",
+    leaderName: row.leader_name ?? "",
+    leaderEmail: row.leader_email ?? "",
+    leaderPhone: row.leader_phone ?? "",
+    supportNeeded: row.support_needed?.join(", ") ?? "",
   };
 }
 
@@ -86,8 +99,8 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(Boolean(supabase));
   const [isSaving, setIsSaving] = useState(false);
+  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
   const [approvingRequestId, setApprovingRequestId] = useState<string | null>(null);
-  const [flyerFile, setFlyerFile] = useState<File | null>(null);
   const [eventMinistryFilter, setEventMinistryFilter] = useState("all");
   const [eventDateFilter, setEventDateFilter] = useState("");
 
@@ -131,7 +144,7 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
 
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,description,date,time,ministry,location,registration_url,flyer_url")
+      .select("id,title,description,date,time,ministry,location,registration_url,leader_name,leader_email,leader_phone,support_needed")
       .gte("date", new Date().toISOString().slice(0, 10))
       .order("date", { ascending: true })
       .order("time", { ascending: true });
@@ -201,39 +214,6 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
     setMessage("");
 
     const eventId = form.id ?? `${slugify(form.title)}-${form.date}`;
-    let flyerUrl = form.flyerUrl.trim() || null;
-
-    if (flyerFile) {
-      if (!ALLOWED_FLYER_TYPES.includes(flyerFile.type)) {
-        setMessage("Please upload a JPG, PNG, or WebP flyer.");
-        setIsSaving(false);
-        return;
-      }
-
-      if (flyerFile.size > MAX_FLYER_SIZE) {
-        setMessage("Flyers must be 5MB or smaller.");
-        setIsSaving(false);
-        return;
-      }
-
-      const extension = flyerFile.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const filePath = `${eventId}/${Date.now()}.${extension}`;
-      const { error: uploadError } = await supabase.storage
-        .from("event-flyers")
-        .upload(filePath, flyerFile, {
-          cacheControl: "31536000",
-          upsert: true,
-        });
-
-      if (uploadError) {
-        setMessage(uploadError.message);
-        setIsSaving(false);
-        return;
-      }
-
-      const { data } = supabase.storage.from("event-flyers").getPublicUrl(filePath);
-      flyerUrl = data.publicUrl;
-    }
 
     const payload = {
       id: eventId,
@@ -244,7 +224,10 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
       ministry: form.ministry.trim() || null,
       location: form.location.trim() || null,
       registration_url: form.registrationUrl.trim() || null,
-      flyer_url: flyerUrl,
+      leader_name: form.leaderName.trim() || null,
+      leader_email: form.leaderEmail.trim() || null,
+      leader_phone: form.leaderPhone.trim() || null,
+      support_needed: parseSupportNeeded(form.supportNeeded),
     };
 
     const { error } = await supabase.from("events").upsert(payload).select("id").single();
@@ -253,11 +236,35 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
       setMessage(error.message);
     } else {
       setForm(emptyEventForm);
-      setFlyerFile(null);
+      setMessage(form.id ? "Event updated." : "Event added.");
       await loadEvents();
     }
 
     setIsSaving(false);
+  }
+
+  async function deleteEvent(eventId: string, eventTitle: string) {
+    if (!supabase || !canManageAll) return;
+
+    const confirmed = window.confirm(`Delete "${eventTitle}" from the public calendar?`);
+    if (!confirmed) return;
+
+    setDeletingEventId(eventId);
+    setMessage("");
+
+    const { error } = await supabase.from("events").delete().eq("id", eventId);
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      if (form.id === eventId) {
+        setForm(emptyEventForm);
+      }
+      setMessage("Event deleted.");
+      await loadEvents();
+    }
+
+    setDeletingEventId(null);
   }
 
   async function approveEventRequest(request: SupabaseEventRequestRow) {
@@ -279,7 +286,10 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
       ministry: request.ministry,
       location: request.location,
       registration_url: null,
-      flyer_url: null,
+      leader_name: null,
+      leader_email: null,
+      leader_phone: null,
+      support_needed: [],
     };
 
     const { error: eventError } = await supabase.from("events").upsert(payload).select("id").single();
@@ -419,42 +429,22 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
               <Input value={form.ministry} onChange={(e) => setForm({ ...form, ministry: e.target.value })} placeholder="Ministry" />
               <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Location" />
               <Input value={form.registrationUrl} onChange={(e) => setForm({ ...form, registrationUrl: e.target.value })} placeholder="Registration URL" />
-              <label className="grid gap-2 rounded-2xl border border-dashed border-[var(--brand-border)] bg-[var(--brand-soft)] p-4 text-sm text-[var(--brand-muted)]">
-                <span className="flex items-center gap-2 font-medium text-[var(--brand-navy)]">
-                  <FileUp className="h-4 w-4 text-[var(--brand-burgundy)]" />
-                  Upload flyer
+              <textarea
+                value={form.supportNeeded}
+                onChange={(event) => setForm({ ...form, supportNeeded: event.target.value })}
+                placeholder="Help needed: setup, cleanup, greeting, food, media"
+                rows={3}
+                className="min-h-24 rounded-md border border-[var(--brand-border)] bg-white px-3 py-3 text-sm text-[var(--brand-navy)] outline-none focus:border-[var(--brand-burgundy)]"
+              />
+              <div className="grid gap-3 rounded-2xl border border-[var(--brand-border)] bg-[var(--brand-soft)] p-4">
+                <span className="flex items-center gap-2 text-sm font-medium text-[var(--brand-navy)]">
+                  <UserRound className="h-4 w-4 text-[var(--brand-burgundy)]" />
+                  Team leader contact
                 </span>
-                <span>JPG, PNG, or WebP. Max 5MB.</span>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0] ?? null;
-
-                    if (!file) {
-                      setFlyerFile(null);
-                      return;
-                    }
-
-                    if (!ALLOWED_FLYER_TYPES.includes(file.type)) {
-                      setMessage("Please upload a JPG, PNG, or WebP flyer.");
-                      event.target.value = "";
-                      return;
-                    }
-
-                    if (file.size > MAX_FLYER_SIZE) {
-                      setMessage("Flyers must be 5MB or smaller.");
-                      event.target.value = "";
-                      return;
-                    }
-
-                    setMessage("");
-                    setFlyerFile(file);
-                  }}
-                  className="text-sm"
-                />
-                {flyerFile ? <span className="font-medium text-[var(--brand-burgundy)]">{flyerFile.name}</span> : null}
-              </label>
+                <Input value={form.leaderName} onChange={(e) => setForm({ ...form, leaderName: e.target.value })} placeholder="Leader name" />
+                <Input type="email" value={form.leaderEmail} onChange={(e) => setForm({ ...form, leaderEmail: e.target.value })} placeholder="Leader email" />
+                <Input type="tel" value={form.leaderPhone} onChange={(e) => setForm({ ...form, leaderPhone: e.target.value })} placeholder="Leader phone" />
+              </div>
               {message ? <p className="text-sm text-[var(--brand-burgundy)]">{message}</p> : null}
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Button type="submit" disabled={isSaving}>
@@ -464,9 +454,20 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
                 {form.id ? (
                   <Button type="button" variant="secondary" onClick={() => {
                     setForm(emptyEventForm);
-                    setFlyerFile(null);
                   }}>
                     Cancel
+                  </Button>
+                ) : null}
+                {form.id ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-[var(--brand-burgundy)] hover:bg-[var(--brand-burgundy-soft)]"
+                    disabled={deletingEventId === form.id}
+                    onClick={() => deleteEvent(form.id!, form.title)}
+                  >
+                    {deletingEventId === form.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    Delete
                   </Button>
                 ) : null}
               </div>
@@ -514,7 +515,6 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
                     className="grid w-full gap-2 border-b border-[var(--brand-border)] px-5 py-4 text-left transition hover:bg-[var(--brand-soft)]"
                     onClick={() => {
                       setForm(rowToForm(event));
-                      setFlyerFile(null);
                     }}
                   >
                     <span className="flex items-center gap-2 font-semibold text-[var(--brand-navy)]">
@@ -524,6 +524,37 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
                     <span className="text-sm text-[var(--brand-muted)]">
                       {formatDisplayDate(event.date)} · {event.time ?? "Time to be announced"} · {event.ministry ?? "Ministry not listed"} · {event.location ?? "Location to be announced"}
                     </span>
+                    {event.leader_name || event.leader_email || event.leader_phone ? (
+                      <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--brand-muted)]">
+                        {event.leader_name ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <UserRound className="h-3.5 w-3.5 text-[var(--brand-burgundy)]" />
+                            {event.leader_name}
+                          </span>
+                        ) : null}
+                        {event.leader_email ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Mail className="h-3.5 w-3.5 text-[var(--brand-burgundy)]" />
+                            {event.leader_email}
+                          </span>
+                        ) : null}
+                        {event.leader_phone ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Phone className="h-3.5 w-3.5 text-[var(--brand-burgundy)]" />
+                            {event.leader_phone}
+                          </span>
+                        ) : null}
+                      </span>
+                    ) : null}
+                    {event.support_needed?.length ? (
+                      <span className="flex flex-wrap gap-2">
+                        {event.support_needed.map((item) => (
+                          <span key={item} className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-xs font-medium text-[var(--brand-navy)]">
+                            {item}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
                     <span className="inline-flex items-center gap-2 text-xs font-medium text-[var(--brand-burgundy)]">
                       <SquarePen className="h-3.5 w-3.5" />
                       Edit details
