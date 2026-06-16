@@ -24,6 +24,7 @@ type EventFormState = {
   leaderEmail: string;
   leaderPhone: string;
   supportNeeded: string;
+  requestVolunteers: boolean;
 };
 
 const emptyEventForm: EventFormState = {
@@ -38,6 +39,7 @@ const emptyEventForm: EventFormState = {
   leaderEmail: "",
   leaderPhone: "",
   supportNeeded: "",
+  requestVolunteers: false,
 };
 
 type EventsAdminPanelProps = {
@@ -87,6 +89,7 @@ function rowToForm(row: SupabaseEventRow): EventFormState {
     leaderEmail: row.leader_email ?? "",
     leaderPhone: row.leader_phone ?? "",
     supportNeeded: row.support_needed?.join(", ") ?? "",
+    requestVolunteers: Boolean(row.request_volunteers),
   };
 }
 
@@ -144,7 +147,7 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
 
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,description,date,time,ministry,location,registration_url,leader_name,leader_email,leader_phone,support_needed")
+      .select("id,title,description,date,time,ministry,location,registration_url,leader_name,leader_email,leader_phone,support_needed,request_volunteers")
       .gte("date", new Date().toISOString().slice(0, 10))
       .order("date", { ascending: true })
       .order("time", { ascending: true });
@@ -228,6 +231,7 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
       leader_email: form.leaderEmail.trim() || null,
       leader_phone: form.leaderPhone.trim() || null,
       support_needed: parseSupportNeeded(form.supportNeeded),
+      request_volunteers: form.requestVolunteers,
     };
 
     const { error } = await supabase.from("events").upsert(payload).select("id").single();
@@ -290,6 +294,7 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
       leader_email: null,
       leader_phone: null,
       support_needed: [],
+      request_volunteers: false,
     };
 
     const { error: eventError } = await supabase.from("events").upsert(payload).select("id").single();
@@ -429,6 +434,20 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
               <Input value={form.ministry} onChange={(e) => setForm({ ...form, ministry: e.target.value })} placeholder="Ministry" />
               <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Location" />
               <Input value={form.registrationUrl} onChange={(e) => setForm({ ...form, registrationUrl: e.target.value })} placeholder="Registration URL" />
+              <label className="flex items-start gap-3 rounded-2xl border border-[var(--brand-border)] bg-[var(--brand-soft)] p-4">
+                <input
+                  type="checkbox"
+                  checked={form.requestVolunteers}
+                  onChange={(event) => setForm({ ...form, requestVolunteers: event.target.checked })}
+                  className="mt-1 h-4 w-4 accent-[var(--brand-burgundy)]"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-[var(--brand-navy)]">Request volunteers</span>
+                  <span className="mt-1 block text-sm leading-6 text-[var(--brand-muted)]">
+                    Show the Volunteer button and help-needed details on this event.
+                  </span>
+                </span>
+              </label>
               <textarea
                 value={form.supportNeeded}
                 onChange={(event) => setForm({ ...form, supportNeeded: event.target.value })}
@@ -509,13 +528,9 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
                 <p className="p-5 text-sm text-[var(--brand-muted)]">Loading events...</p>
               ) : filteredEvents.length ? (
                 filteredEvents.map((event) => (
-                  <button
+                  <div
                     key={event.id}
-                    type="button"
                     className="grid w-full gap-2 border-b border-[var(--brand-border)] px-5 py-4 text-left transition hover:bg-[var(--brand-soft)]"
-                    onClick={() => {
-                      setForm(rowToForm(event));
-                    }}
                   >
                     <span className="flex items-center gap-2 font-semibold text-[var(--brand-navy)]">
                       <CalendarDays className="h-4 w-4 text-[var(--brand-burgundy)]" />
@@ -555,11 +570,35 @@ export function EventsAdminPanel({ canManageAll }: EventsAdminPanelProps) {
                         ))}
                       </span>
                     ) : null}
-                    <span className="inline-flex items-center gap-2 text-xs font-medium text-[var(--brand-burgundy)]">
-                      <SquarePen className="h-3.5 w-3.5" />
-                      Edit details
+                    {event.request_volunteers ? (
+                      <span className="inline-flex w-fit rounded-full bg-[var(--brand-burgundy-soft)] px-3 py-1 text-xs font-medium text-[var(--brand-burgundy)]">
+                        Volunteers requested
+                      </span>
+                    ) : null}
+                    <span className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="px-0 text-[var(--brand-burgundy)] hover:bg-transparent"
+                        onClick={() => setForm(rowToForm(event))}
+                      >
+                        <SquarePen className="h-3.5 w-3.5" />
+                        Edit details
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="px-0 text-[var(--brand-burgundy)] hover:bg-transparent"
+                        disabled={deletingEventId === event.id}
+                        onClick={() => deleteEvent(event.id, event.title)}
+                      >
+                        {deletingEventId === event.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                        Delete
+                      </Button>
                     </span>
-                  </button>
+                  </div>
                 ))
               ) : (
                 <p className="p-5 text-sm text-[var(--brand-muted)]">No upcoming events match these filters.</p>

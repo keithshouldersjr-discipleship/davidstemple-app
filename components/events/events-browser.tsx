@@ -59,7 +59,7 @@ export function EventsBrowser({ events }: EventsBrowserProps) {
                       {event.location}
                     </span>
                   </div>
-                  {event.supportNeeded?.length ? (
+                  {event.requestVolunteers && event.supportNeeded?.length ? (
                     <div className="flex flex-wrap gap-2">
                       {event.supportNeeded.map((item) => (
                         <span key={item} className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-xs font-medium text-[var(--brand-navy)]">
@@ -129,15 +129,17 @@ export function EventsBrowser({ events }: EventsBrowserProps) {
                 </span>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
-                <InterestButton
-                  sourceType="event"
-                  sourceId={selectedEvent.id}
-                  sourceTitle={selectedEvent.title}
-                  interestArea={selectedEvent.ministry ?? selectedEvent.title}
-                  supportNeeded={selectedEvent.supportNeeded}
-                  label="Volunteer"
-                  className="w-full sm:w-auto"
-                />
+                {selectedEvent.requestVolunteers ? (
+                  <InterestButton
+                    sourceType="event"
+                    sourceId={selectedEvent.id}
+                    sourceTitle={selectedEvent.title}
+                    interestArea={selectedEvent.ministry ?? selectedEvent.title}
+                    supportNeeded={selectedEvent.supportNeeded}
+                    label="Volunteer"
+                    className="w-full sm:w-auto"
+                  />
+                ) : null}
                 {selectedEvent.leaderEmail ? (
                   <Link href={`mailto:${selectedEvent.leaderEmail}?subject=${encodeURIComponent(`I would like to help with ${selectedEvent.title}`)}`}>
                     <Button variant="secondary" size="sm" className="w-full sm:w-auto">
@@ -162,7 +164,7 @@ export function EventsBrowser({ events }: EventsBrowserProps) {
                   </Link>
                 ) : null}
               </div>
-              {selectedEvent.supportNeeded?.length ? (
+              {selectedEvent.requestVolunteers && selectedEvent.supportNeeded?.length ? (
                 <div className="rounded-2xl border border-[var(--brand-border)] p-4">
                   <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--brand-burgundy)]">Help needed</p>
                   <div className="mt-3 flex flex-wrap gap-2">

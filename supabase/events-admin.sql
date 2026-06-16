@@ -16,6 +16,9 @@ add column if not exists leader_phone text;
 alter table public.events
 add column if not exists support_needed text[] not null default '{}';
 
+alter table public.events
+add column if not exists request_volunteers boolean not null default false;
+
 create table if not exists public.event_requests (
   id uuid primary key default gen_random_uuid(),
   title text not null,
@@ -134,11 +137,15 @@ to authenticated
 using (public.is_events_admin());
 
 drop policy if exists "Anyone can submit event requests" on public.event_requests;
-create policy "Anyone can submit event requests"
+drop policy if exists "Admins and leaders can submit event requests" on public.event_requests;
+create policy "Admins and leaders can submit event requests"
 on public.event_requests
 for insert
-to anon, authenticated
-with check (status = 'pending');
+to authenticated
+with check (
+  status = 'pending'
+  and public.current_directory_role() in ('owner', 'admin', 'leader')
+);
 
 drop policy if exists "Anyone can submit connection requests" on public.connection_requests;
 create policy "Anyone can submit connection requests"

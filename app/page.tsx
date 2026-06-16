@@ -199,7 +199,7 @@ export default async function Home() {
                       ) : null}
                     </div>
                   ) : null}
-                  {event.supportNeeded?.length ? (
+                  {event.requestVolunteers && event.supportNeeded?.length ? (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {event.supportNeeded.map((item) => (
                         <span key={item} className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-xs font-medium text-[var(--brand-navy)]">
@@ -210,15 +210,17 @@ export default async function Home() {
                   ) : null}
                 </div>
                 <div className="hidden gap-2 sm:grid">
-                  <InterestButton
-                    sourceType="event"
-                    sourceId={event.id}
-                    sourceTitle={event.title}
-                    interestArea={event.ministry ?? event.title}
-                    supportNeeded={event.supportNeeded}
-                    label="Volunteer"
-                    variant="secondary"
-                  />
+                  {event.requestVolunteers ? (
+                    <InterestButton
+                      sourceType="event"
+                      sourceId={event.id}
+                      sourceTitle={event.title}
+                      interestArea={event.ministry ?? event.title}
+                      supportNeeded={event.supportNeeded}
+                      label="Volunteer"
+                      variant="secondary"
+                    />
+                  ) : null}
                   <Link href="/events" className="rounded-full border border-[var(--brand-border)] px-4 py-2 text-center text-sm font-medium text-[var(--brand-muted)] transition hover:border-[var(--brand-burgundy)]/35 hover:bg-white">
                     Details
                   </Link>

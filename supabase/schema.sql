@@ -11,6 +11,7 @@ create table if not exists public.events (
   leader_email text,
   leader_phone text,
   support_needed text[] not null default '{}',
+  request_volunteers boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -29,6 +30,9 @@ add column if not exists leader_phone text;
 
 alter table public.events
 add column if not exists support_needed text[] not null default '{}';
+
+alter table public.events
+add column if not exists request_volunteers boolean not null default false;
 
 create table if not exists public.event_requests (
   id uuid primary key default gen_random_uuid(),
@@ -255,7 +259,7 @@ on conflict (id) do update set
   sort_order = excluded.sort_order,
   updated_at = now();
 
-insert into public.events (id, title, description, date, time, ministry, location, leader_name, leader_email, leader_phone, support_needed)
+insert into public.events (id, title, description, date, time, ministry, location, leader_name, leader_email, leader_phone, support_needed, request_volunteers)
 values
   (
     'church-anniversary-2026-05-24',
@@ -268,7 +272,8 @@ values
     null,
     null,
     null,
-    '{}'
+    '{}',
+    false
   ),
   (
     'relay-for-life-2026-05-30',
@@ -281,7 +286,8 @@ values
     null,
     null,
     null,
-    '{}'
+    '{}',
+    false
   ),
   (
     'church-carnival-2026-05-30',
@@ -294,7 +300,8 @@ values
     null,
     null,
     null,
-    '{}'
+    '{}',
+    false
   )
 on conflict (id) do update set
   title = excluded.title,
@@ -307,4 +314,5 @@ on conflict (id) do update set
   leader_email = excluded.leader_email,
   leader_phone = excluded.leader_phone,
   support_needed = excluded.support_needed,
+  request_volunteers = excluded.request_volunteers,
   updated_at = now();

@@ -92,11 +92,6 @@ export default function PastorPage() {
                 and a proud father to their daughter, Kennedi. He considers his family one of God&apos;s greatest gifts in
                 his life.
               </p>
-              <p className="rounded-2xl bg-[var(--brand-soft)] p-5 font-medium text-[var(--brand-navy)]">
-                Pastor Keith believes that where you start does not determine where you finish. With God, faithfulness,
-                hard work, and consistency, he believes people can grow, serve, and succeed while staying rooted in who
-                God created them to be.
-              </p>
             </div>
           </article>
         </div>

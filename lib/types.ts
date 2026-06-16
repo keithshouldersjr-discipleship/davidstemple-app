@@ -48,6 +48,7 @@ export type Event = {
   leaderEmail?: string;
   leaderPhone?: string;
   supportNeeded?: string[];
+  requestVolunteers?: boolean;
 };
 
 export type MinistryContact = {

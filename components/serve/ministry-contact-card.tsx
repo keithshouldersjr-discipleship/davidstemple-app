@@ -21,12 +21,16 @@ function getLeaderPhoto(leaderName: string) {
     "shellia battles": "/ministry-leaders/shellia-battles.png",
     "antonio woodruff": "/ministry-leaders/antonio-woodruff.png",
     "tara lucas": "/ministry-leaders/tara-lucas.png",
+    "jimmy and nicole andrews": "/ministry-leaders/jimmy-nicole-andrews.jpg",
+    "jimmy & nicole andrews": "/ministry-leaders/jimmy-nicole-andrews.jpg",
+    "nicole andrews": "/ministry-leaders/jimmy-nicole-andrews.jpg",
     "donald wicks": "/ministry-leaders/donald-wicks.jpeg",
     "rev donald wicks": "/ministry-leaders/donald-wicks.jpeg",
     "rev. donald wicks": "/ministry-leaders/donald-wicks.jpeg",
   };
   const normalizedName = leaderName
     .toLowerCase()
+    .replace(/&/g, "and")
     .replace(/\./g, "")
     .replace(/\s+/g, " ")
     .trim();

@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent, type ReactNode, useState } from "react";
+import { FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Loader2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { createSupabaseBrowserClient } from "@/lib/supabase";
 
 type EventRequestButtonProps = {
   className?: string;
@@ -61,20 +62,60 @@ export function EventRequestButton({
   size = "md",
   variant = "primary",
 }: EventRequestButtonProps) {
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const [canSubmitRequests, setCanSubmitRequests] = useState(false);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [requestMessage, setRequestMessage] = useState("");
   const [requestForm, setRequestForm] = useState(emptyRequestForm);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadRole() {
+      if (!supabase) return;
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const email = user?.email?.toLowerCase();
+
+      if (!email) return;
+
+      const { data, error } = await supabase
+        .from("admin_users")
+        .select("role")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (!isMounted) return;
+
+      setCanSubmitRequests(Boolean(!error && data && ["owner", "admin", "leader"].includes(data.role)));
+    }
+
+    void loadRole();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [supabase]);
+
   async function submitEventRequest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setRequestMessage("");
 
+    const {
+      data: { session },
+    } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
+
     const response = await fetch("/api/event-requests", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      },
       body: JSON.stringify(requestForm),
     });
     const data = (await response.json().catch(() => ({}))) as { message?: string };
@@ -99,6 +140,10 @@ export function EventRequestButton({
     setIsRequestOpen(false);
     setIsSubmitted(false);
     setRequestMessage("");
+  }
+
+  if (!canSubmitRequests) {
+    return null;
   }
 
   return (

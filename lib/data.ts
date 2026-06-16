@@ -43,7 +43,7 @@ export async function getEvents(): Promise<Event[]> {
 
   const { data, error } = await supabase
     .from("events")
-    .select("id,title,description,date,time,ministry,location,registration_url,leader_name,leader_email,leader_phone,support_needed")
+    .select("id,title,description,date,time,ministry,location,registration_url,leader_name,leader_email,leader_phone,support_needed,request_volunteers")
     .gte("date", new Date().toISOString().slice(0, 10))
     .order("date", { ascending: true })
     .order("time", { ascending: true });
@@ -58,7 +58,7 @@ export async function getEvents(): Promise<Event[]> {
         .order("time", { ascending: true });
 
       if (!legacyError && legacyData) {
-        return (legacyData as Omit<SupabaseEventRow, "ministry" | "leader_name" | "leader_email" | "leader_phone" | "support_needed">[]).map((event) => ({
+        return (legacyData as Omit<SupabaseEventRow, "ministry" | "leader_name" | "leader_email" | "leader_phone" | "support_needed" | "request_volunteers">[]).map((event) => ({
           id: event.id,
           title: event.title,
           description: event.description ?? "David's Temple church event.",
@@ -68,6 +68,7 @@ export async function getEvents(): Promise<Event[]> {
           location: event.location ?? "Location to be announced",
           registrationUrl: event.registration_url ?? undefined,
           supportNeeded: [],
+          requestVolunteers: false,
         }));
       }
     }
@@ -89,6 +90,7 @@ export async function getEvents(): Promise<Event[]> {
     leaderEmail: event.leader_email ?? undefined,
     leaderPhone: event.leader_phone ?? undefined,
     supportNeeded: normalizeSupportNeeded(event.support_needed),
+    requestVolunteers: Boolean(event.request_volunteers),
   }));
 }
 

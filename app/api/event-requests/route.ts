@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 type EventRequestBody = {
   title?: string;
@@ -24,6 +24,63 @@ function parseEmailRecipients(value?: string) {
   return {
     validRecipients: recipients.filter((email) => emailPattern.test(email)),
     invalidRecipients: recipients.filter((email) => !emailPattern.test(email)),
+  };
+}
+
+function createAuthorizedSupabaseClient(request: Request) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const authorization = request.headers.get("authorization");
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return { configured: false, supabase: null };
+  }
+
+  if (!authorization) {
+    return { configured: true, supabase: null };
+  }
+
+  return {
+    configured: true,
+    supabase: createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: false,
+      },
+      global: {
+        headers: {
+          Authorization: authorization,
+        },
+      },
+    }),
+  };
+}
+
+async function canSubmitEventRequest(request: Request) {
+  const { configured, supabase } = createAuthorizedSupabaseClient(request);
+
+  if (!supabase) {
+    return { allowed: false, configured, supabase: null };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const email = user?.email?.toLowerCase();
+
+  if (!email) {
+    return { allowed: false, configured, supabase };
+  }
+
+  const { data, error } = await supabase
+    .from("admin_users")
+    .select("role")
+    .eq("email", email)
+    .maybeSingle();
+
+  return {
+    allowed: Boolean(!error && data && ["owner", "admin", "leader"].includes(data.role)),
+    configured,
+    supabase,
   };
 }
 
@@ -116,12 +173,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = createSupabaseServerClient();
+  const { allowed, configured, supabase } = await canSubmitEventRequest(request);
 
-  if (!supabase) {
+  if (!configured) {
     return NextResponse.json(
       { message: "Event requests are not configured yet." },
       { status: 500 },
+    );
+  }
+
+  if (!allowed || !supabase) {
+    return NextResponse.json(
+      { message: "Only signed-in admins and leaders can submit event requests." },
+      { status: 403 },
     );
   }
 

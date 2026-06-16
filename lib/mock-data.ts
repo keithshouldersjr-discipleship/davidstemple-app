@@ -399,7 +399,7 @@ export const ministryContacts: MinistryContact[] = [
   {
     id: "youth-ministry",
     ministryName: "Youth Ministry",
-    leaderName: "Nicole Andrews",
+    leaderName: "Jimmy & Nicole Andrews",
     phone: "256-804-9331",
     description: "Serve young people as they grow in faith and community.",
     category: "Youth",

@@ -13,6 +13,7 @@ export type SupabaseEventRow = {
   leader_email: string | null;
   leader_phone: string | null;
   support_needed: string[] | null;
+  request_volunteers: boolean | null;
 };
 
 export type SupabaseEventRequestRow = {
