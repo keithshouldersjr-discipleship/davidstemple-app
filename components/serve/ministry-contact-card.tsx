@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Phone, UserRound } from "lucide-react";
 import { InterestButton } from "@/components/connect/interest-button";
 import { Badge } from "@/components/ui/badge";
@@ -16,14 +17,21 @@ function getPhoneHref(phone: string) {
 
 function getLeaderPhoto(leaderName: string) {
   const photos: Record<string, string> = {
-    "Maurice Pryor": "/ministry-leaders/maurice-pryor.png",
-    "Shellia Battles": "/ministry-leaders/shellia-battles.png",
-    "Antonio Woodruff": "/ministry-leaders/antonio-woodruff.png",
-    "Tara Lucas": "/ministry-leaders/tara-lucas.png",
-    "Rev. Donald Wicks": "/ministry-leaders/donald-wicks.jpeg",
+    "maurice pryor": "/ministry-leaders/maurice-pryor.png",
+    "shellia battles": "/ministry-leaders/shellia-battles.png",
+    "antonio woodruff": "/ministry-leaders/antonio-woodruff.png",
+    "tara lucas": "/ministry-leaders/tara-lucas.png",
+    "donald wicks": "/ministry-leaders/donald-wicks.jpeg",
+    "rev donald wicks": "/ministry-leaders/donald-wicks.jpeg",
+    "rev. donald wicks": "/ministry-leaders/donald-wicks.jpeg",
   };
+  const normalizedName = leaderName
+    .toLowerCase()
+    .replace(/\./g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 
-  return photos[leaderName];
+  return photos[normalizedName];
 }
 
 export function MinistryContactCard({ contact }: MinistryContactCardProps) {
@@ -34,11 +42,15 @@ export function MinistryContactCard({ contact }: MinistryContactCardProps) {
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           {leaderPhoto ? (
-            <span
-              className="h-20 w-20 shrink-0 rounded-2xl bg-cover bg-center shadow-sm shadow-slate-900/15"
-              style={{ backgroundImage: `url('${leaderPhoto}')` }}
-              aria-label={contact.leaderName}
-            />
+            <span className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl shadow-sm shadow-slate-900/15">
+              <Image
+                src={leaderPhoto}
+                alt={contact.leaderName}
+                fill
+                sizes="80px"
+                className="object-cover"
+              />
+            </span>
           ) : (
             <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-navy)]/8 text-[var(--brand-navy)]">
               <UserRound className="h-8 w-8" />
