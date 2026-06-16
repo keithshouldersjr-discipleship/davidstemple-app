@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Mail, MessageCircle, Phone, UserRound, UsersRound } from "lucide-react";
-import { ChatPanel } from "@/components/assistant/chat-panel";
+import { ArrowRight, CalendarDays, ChevronDown, Mail, MessageCircle, Phone, UserRound, UsersRound } from "lucide-react";
 import { InterestButton } from "@/components/connect/interest-button";
 import { EventRequestButton } from "@/components/events/event-request-button";
 import { ResourceCard } from "@/components/resources/resource-card";
@@ -47,35 +46,92 @@ export default async function Home() {
   const events = await getEvents();
   const featuredResources = resources.slice(0, 6);
   const upcomingEvents = getEventsWithinDays(events, 90);
+  const churchLifePhotos = [
+    {
+      src: "/church-life/fellowship-outside.png",
+      title: "Fellowship",
+      className: "sm:col-span-2",
+    },
+    {
+      src: "/church-life/youth-craft-table.png",
+      title: "Youth",
+      className: "",
+    },
+    {
+      src: "/church-life/children-playing.png",
+      title: "Families",
+      className: "",
+    },
+  ];
 
   return (
     <main>
       <section className="relative overflow-hidden bg-[var(--brand-navy)]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.18),transparent_28rem)]" />
-        <div className="pointer-events-none absolute -right-12 top-12 text-[18rem] font-bold leading-none text-white/[0.035] sm:text-[26rem]">
-          +
-        </div>
-        <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:px-6 md:grid-cols-[1fr_0.86fr] md:items-center lg:px-8 lg:py-14">
-          <div className="space-y-8">
-            <div className="space-y-5">
-              <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-white sm:text-6xl">
-                Ask. Find. Stay connected.
-              </h1>
-              <p className="max-w-2xl text-lg leading-8 text-white/80">
-                A simple digital hub for David&apos;s Temple members, visitors,
-                and ministry leaders.
-              </p>
-            </div>
+        <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:px-6 md:grid-cols-[0.96fr_1.04fr] md:items-center lg:px-8 lg:py-12">
+          <div className="space-y-7">
+            <p className="text-sm font-medium uppercase tracking-[0.22em] text-white/70">
+              David&apos;s Temple Missionary Baptist Church
+            </p>
+            <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-white sm:text-5xl">
+              Evangelizing, equipping, and empowering believers to the glory of God.
+            </h1>
+            <p className="max-w-2xl text-lg leading-8 text-white/80">
+              Find service times, upcoming events, ministry contacts, and clear next steps for getting connected.
+            </p>
             <div className="flex flex-col gap-3 sm:flex-row">
+              <details className="group rounded-2xl border border-white/20 bg-white/10 text-white">
+                <summary className="flex h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 text-sm font-semibold marker:hidden">
+                  Service Times
+                  <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
+                </summary>
+                <div className="grid gap-3 border-t border-white/15 px-5 py-4 text-sm text-white/84">
+                  <p className="flex items-center justify-between gap-4">
+                    <span>Sunday School</span>
+                    <span className="font-semibold text-white">8:30 AM</span>
+                  </p>
+                  <p className="flex items-center justify-between gap-4">
+                    <span>Morning Worship</span>
+                    <span className="font-semibold text-white">9:30 AM</span>
+                  </p>
+                  <p className="flex items-center justify-between gap-4">
+                    <span>Bible Study</span>
+                    <span className="font-semibold text-white">11:00 AM & 6:00 PM</span>
+                  </p>
+                </div>
+              </details>
+              <InterestButton
+                sourceType="sunday"
+                sourceTitle="Service Times"
+                interestArea="Visiting or getting connected"
+                label="Connect with us"
+                size="lg"
+                className="w-full whitespace-nowrap sm:w-auto"
+              />
               <Link href="/ask">
-                <Button size="lg">
+                <Button variant="light" size="lg" className="w-full whitespace-nowrap sm:w-auto">
                   <MessageCircle className="h-5 w-5" />
-                  Ask a question
+                  Ask ask.dt
                 </Button>
               </Link>
             </div>
           </div>
-          <ChatPanel compact />
+          <div className="grid min-h-[22rem] grid-cols-2 gap-3 sm:min-h-[30rem]">
+            <div
+              className="col-span-2 rounded-3xl bg-cover bg-center shadow-2xl shadow-slate-950/30 sm:col-span-1 sm:row-span-2"
+              style={{ backgroundImage: "url('/church-life/fellowship-outside.png')" }}
+              aria-label="David's Temple members fellowshipping outside"
+            />
+            <div
+              className="rounded-3xl bg-cover bg-center shadow-xl shadow-slate-950/24"
+              style={{ backgroundImage: "url('/church-life/welcome-gift.png')" }}
+              aria-label="David's Temple welcoming a young member"
+            />
+            <div
+              className="rounded-3xl bg-cover bg-center shadow-xl shadow-slate-950/24"
+              style={{ backgroundImage: "url('/church-life/youth-smiling.png')" }}
+              aria-label="David's Temple youth smiling"
+            />
+          </div>
         </div>
       </section>
 
@@ -89,7 +145,7 @@ export default async function Home() {
               <p className="text-sm font-medium uppercase tracking-[0.22em] text-[var(--brand-burgundy)]">This Sunday</p>
               <h2 className="mt-1 text-2xl font-semibold text-[var(--brand-navy)]">Find your next step before you arrive</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">
-                Sunday School is listed at 9:00 AM. Ask a question, let someone know you want to connect, or scan upcoming ministry moments.
+                Sunday School begins at 8:30 AM, Morning Worship begins at 9:30 AM, and Bible Study meets at 11:00 AM and 6:00 PM.
               </p>
             </div>
           </div>
@@ -202,12 +258,39 @@ export default async function Home() {
                     sourceTitle={event.title}
                     interestArea={event.ministry ?? event.title}
                     supportNeeded={event.supportNeeded}
-                    label="Help"
+                    label="Volunteer"
                     variant="secondary"
                   />
                   <Link href="/events" className="rounded-full border border-[var(--brand-border)] px-4 py-2 text-center text-sm font-medium text-[var(--brand-muted)] transition hover:border-[var(--brand-burgundy)]/35 hover:bg-white">
                     Details
                   </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white">
+        <div className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+          <div className="mb-6 max-w-3xl space-y-3">
+            <p className="text-sm font-medium uppercase tracking-[0.22em] text-[var(--brand-burgundy)]">
+              Church Life
+            </p>
+            <h2 className="text-3xl font-semibold text-[var(--brand-navy)]">
+              A place to worship, grow, and belong
+            </h2>
+          </div>
+          <div className="grid auto-rows-[14rem] gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {churchLifePhotos.map((photo) => (
+              <div
+                key={photo.src}
+                className={`relative overflow-hidden rounded-3xl bg-cover bg-center shadow-sm shadow-slate-900/8 ${photo.className}`}
+                style={{ backgroundImage: `url('${photo.src}')` }}
+                aria-label={`David's Temple ${photo.title.toLowerCase()}`}
+              >
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/70 to-transparent p-4">
+                  <p className="font-semibold text-white">{photo.title}</p>
                 </div>
               </div>
             ))}

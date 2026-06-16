@@ -135,6 +135,7 @@ export function EventsBrowser({ events }: EventsBrowserProps) {
                   sourceTitle={selectedEvent.title}
                   interestArea={selectedEvent.ministry ?? selectedEvent.title}
                   supportNeeded={selectedEvent.supportNeeded}
+                  label="Volunteer"
                   className="w-full sm:w-auto"
                 />
                 {selectedEvent.leaderEmail ? (
