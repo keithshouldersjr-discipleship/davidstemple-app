@@ -5,12 +5,12 @@ export const ASK_DT_SYSTEM_INSTRUCTION =
 
 export const resources: Resource[] = [
   {
-    id: "sunday-school",
-    title: "Sunday School",
-    description: "Find Sunday School information for children, youth, and adults.",
+    id: "pastor-bio",
+    title: "Pastor Bio",
+    description: "Meet Pastor Keith and learn more about his heart for David's Temple and the Tanner community.",
     category: "Grow",
-    url: "/events",
-    icon: "BookOpen",
+    url: "/pastor",
+    icon: "UserRound",
     isActive: true,
     sortOrder: 2,
   },

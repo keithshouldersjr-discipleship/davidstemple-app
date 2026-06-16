@@ -10,6 +10,7 @@ import {
   Phone,
   School,
   Sparkles,
+  UserRound,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ const icons = {
   Phone,
   School,
   Sparkles,
+  UserRound,
 };
 
 type ResourceCardProps = {
