@@ -14,14 +14,36 @@ function getPhoneHref(phone: string) {
   return `tel:${digits.length === 10 ? `+1${digits}` : digits}`;
 }
 
+function getLeaderPhoto(leaderName: string) {
+  const photos: Record<string, string> = {
+    "Maurice Pryor": "/ministry-leaders/maurice-pryor.png",
+    "Shellia Battles": "/ministry-leaders/shellia-battles.png",
+    "Antonio Woodruff": "/ministry-leaders/antonio-woodruff.png",
+    "Tara Lucas": "/ministry-leaders/tara-lucas.png",
+    "Rev. Donald Wicks": "/ministry-leaders/donald-wicks.jpeg",
+  };
+
+  return photos[leaderName];
+}
+
 export function MinistryContactCard({ contact }: MinistryContactCardProps) {
+  const leaderPhoto = getLeaderPhoto(contact.leaderName);
+
   return (
     <Card className="h-full">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-navy)]/8 text-[var(--brand-navy)]">
-            <UserRound className="h-5 w-5" />
-          </span>
+          {leaderPhoto ? (
+            <span
+              className="h-20 w-20 shrink-0 rounded-2xl bg-cover bg-center shadow-sm shadow-slate-900/15"
+              style={{ backgroundImage: `url('${leaderPhoto}')` }}
+              aria-label={contact.leaderName}
+            />
+          ) : (
+            <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-navy)]/8 text-[var(--brand-navy)]">
+              <UserRound className="h-8 w-8" />
+            </span>
+          )}
           <Badge>{contact.category}</Badge>
         </div>
         <CardTitle>{contact.ministryName}</CardTitle>

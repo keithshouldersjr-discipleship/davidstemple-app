@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, ChevronDown, Mail, MessageCircle, Phone, UserRound, UsersRound } from "lucide-react";
+import { ArrowRight, CalendarDays, ChevronDown, Mail, Phone, UserRound } from "lucide-react";
 import { InterestButton } from "@/components/connect/interest-button";
 import { EventRequestButton } from "@/components/events/event-request-button";
+import { AskQuestionButton } from "@/components/home/ask-question-button";
+import { PlanVisitButton } from "@/components/home/plan-visit-button";
 import { ResourceCard } from "@/components/resources/resource-card";
 import { Button } from "@/components/ui/button";
 import { getEvents } from "@/lib/data";
@@ -44,7 +46,7 @@ function cleanPhone(phone: string) {
 
 export default async function Home() {
   const events = await getEvents();
-  const featuredResources = resources.slice(0, 6);
+  const featuredResources = resources.filter((resource) => resource.isActive).sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 6);
   const upcomingEvents = getEventsWithinDays(events, 90);
   const churchLifePhotos = [
     {
@@ -99,20 +101,8 @@ export default async function Home() {
                   </p>
                 </div>
               </details>
-              <InterestButton
-                sourceType="sunday"
-                sourceTitle="Service Times"
-                interestArea="Visiting or getting connected"
-                label="Connect with us"
-                size="lg"
-                className="w-full whitespace-nowrap sm:w-auto"
-              />
-              <Link href="/ask">
-                <Button variant="light" size="lg" className="w-full whitespace-nowrap sm:w-auto">
-                  <MessageCircle className="h-5 w-5" />
-                  Ask ask.dt
-                </Button>
-              </Link>
+              <PlanVisitButton />
+              <AskQuestionButton />
             </div>
           </div>
           <div className="grid min-h-[22rem] grid-cols-2 gap-3 sm:min-h-[30rem]">
@@ -131,38 +121,6 @@ export default async function Home() {
               style={{ backgroundImage: "url('/church-life/youth-smiling.png')" }}
               aria-label="David's Temple youth smiling"
             />
-          </div>
-        </div>
-      </section>
-
-      <section className="border-y border-[var(--brand-border)] bg-white">
-        <div className="mx-auto grid max-w-6xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-center lg:px-8">
-          <div className="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--brand-burgundy-soft)] text-[var(--brand-burgundy)]">
-              <UsersRound className="h-8 w-8" />
-            </div>
-            <div>
-              <p className="text-sm font-medium uppercase tracking-[0.22em] text-[var(--brand-burgundy)]">This Sunday</p>
-              <h2 className="mt-1 text-2xl font-semibold text-[var(--brand-navy)]">Find your next step before you arrive</h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">
-                Sunday School begins at 8:30 AM, Morning Worship begins at 9:30 AM, and Bible Study meets at 11:00 AM and 6:00 PM.
-              </p>
-            </div>
-          </div>
-          <div className="grid gap-2 sm:flex sm:items-center">
-            <InterestButton
-              sourceType="sunday"
-              sourceTitle="This Sunday"
-              interestArea="Getting connected this Sunday"
-              label="Connect with someone"
-              className="w-full sm:w-auto"
-            />
-            <Link href="/ask">
-              <Button variant="secondary" size="sm" className="w-full sm:w-auto">
-                <MessageCircle className="h-4 w-4" />
-                Ask a question
-              </Button>
-            </Link>
           </div>
         </div>
       </section>

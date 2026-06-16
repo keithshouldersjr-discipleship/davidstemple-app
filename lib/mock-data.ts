@@ -5,16 +5,6 @@ export const ASK_DT_SYSTEM_INSTRUCTION =
 
 export const resources: Resource[] = [
   {
-    id: "plan-your-visit",
-    title: "Plan Your Visit",
-    description: "Service details, what to expect, and ways to feel at home before you arrive.",
-    category: "Visit",
-    url: "/resources#visit",
-    icon: "MapPin",
-    isActive: true,
-    sortOrder: 1,
-  },
-  {
     id: "sunday-school",
     title: "Sunday School",
     description: "Find Sunday School information for children, youth, and adults.",
@@ -36,13 +26,13 @@ export const resources: Resource[] = [
   },
   {
     id: "serve",
-    title: "Serve at David's Temple",
+    title: "Join A Ministry",
     description: "Explore opportunities to use your gifts and support the work of ministry.",
     category: "Serve",
     url: "/serve",
     icon: "HeartHandshake",
     isActive: true,
-    sortOrder: 4,
+    sortOrder: 1,
   },
   {
     id: "give-online",
@@ -474,7 +464,7 @@ export function getMockAssistantResponse(prompt: string) {
   }
 
   if (normalized.includes("serve")) {
-    return "A good next step is to visit the Resources page and look for Serve at David's Temple. A ministry leader or the church office can help you find the right opportunity.";
+    return "A good next step is to visit the Join A Ministry page. A ministry leader or the church office can help you find the right opportunity.";
   }
 
   if (normalized.includes("prayer") || normalized.includes("care")) {

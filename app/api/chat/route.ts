@@ -51,7 +51,7 @@ async function getAssistantResponse(message: string) {
       .sort((a, b) => b.score - a.score)[0];
 
     if (bestContact && bestContact.score > 0) {
-      return `${bestContact.contact.ministryName} is connected with ${bestContact.contact.leaderName}. You can call or text ${bestContact.contact.phone}. You can also visit the Serve page for the full ministry contact list.`;
+      return `${bestContact.contact.ministryName} is connected with ${bestContact.contact.leaderName}. You can call or text ${bestContact.contact.phone}. You can also visit the Join A Ministry page for the full ministry contact list.`;
     }
 
     if (ministryContacts.length > 0) {
@@ -60,7 +60,7 @@ async function getAssistantResponse(message: string) {
         .map((contact) => contact.ministryName)
         .join(", ");
 
-      return `You can visit the Serve page to find ministry contacts. Some listed areas include ${contactSummary}.`;
+      return `You can visit the Join A Ministry page to find ministry contacts. Some listed areas include ${contactSummary}.`;
     }
   }
 

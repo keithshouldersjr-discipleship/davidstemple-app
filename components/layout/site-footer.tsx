@@ -5,7 +5,7 @@ const footerLinks = [
   { href: "/ask", label: "Ask" },
   { href: "/resources", label: "Resources" },
   { href: "/events", label: "Events" },
-  { href: "/serve", label: "Serve" },
+  { href: "/serve", label: "Join A Ministry" },
   { href: "/resources#visit", label: "Contact" },
 ];
 

@@ -11,7 +11,7 @@ const navLinks = [
   { href: "/ask", label: "Ask" },
   { href: "/resources", label: "Resources" },
   { href: "/events", label: "Events" },
-  { href: "/serve", label: "Serve" },
+  { href: "/serve", label: "Join A Ministry" },
   { href: "/admin", label: "Admin" },
 ];
 
