@@ -3,21 +3,52 @@ import { getChurchInfo, getMinistryContacts, getUpcomingEventsForAssistant } fro
 import { ASK_DT_SYSTEM_INSTRUCTION, getMockAssistantResponse } from "@/lib/mock-data";
 import type { ChurchInfo, MinistryContact } from "@/lib/types";
 
-function scoreChurchInfoMatch(message: string, item: ChurchInfo) {
-  const words = message
+const searchStopWords = new Set([
+  "about",
+  "also",
+  "and",
+  "any",
+  "are",
+  "can",
+  "church",
+  "does",
+  "for",
+  "from",
+  "have",
+  "how",
+  "our",
+  "the",
+  "there",
+  "this",
+  "what",
+  "when",
+  "where",
+  "who",
+  "will",
+  "with",
+  "you",
+  "your",
+]);
+
+function getSearchWords(message: string) {
+  return message
     .toLowerCase()
     .split(/\W+/)
-    .filter((word) => word.length > 2);
+    .filter((word) => word.length > 2 && !searchStopWords.has(word));
+}
+
+function scoreChurchInfoMatch(message: string, item: ChurchInfo) {
+  const words = getSearchWords(message);
+  const normalizedMessage = message.toLowerCase().trim();
+  const normalizedQuestion = item.question.toLowerCase();
   const haystack = `${item.topic} ${item.question} ${item.answer}`.toLowerCase();
 
-  return words.reduce((score, word) => (haystack.includes(word) ? score + 1 : score), 0);
+  const wordScore = words.reduce((score, word) => (haystack.includes(word) ? score + 1 : score), 0);
+  return normalizedMessage && normalizedQuestion.includes(normalizedMessage) ? wordScore + 4 : wordScore;
 }
 
 function scoreMinistryContactMatch(message: string, contact: MinistryContact) {
-  const words = message
-    .toLowerCase()
-    .split(/\W+/)
-    .filter((word) => word.length > 2);
+  const words = getSearchWords(message);
   const haystack =
     `${contact.ministryName} ${contact.leaderName} ${contact.category} ${contact.description ?? ""}`.toLowerCase();
 
@@ -39,7 +70,6 @@ async function getAssistantResponse(message: string) {
   }
 
   if (
-    normalized.includes("serve") ||
     normalized.includes("ministry") ||
     normalized.includes("contact") ||
     normalized.includes("choir") ||

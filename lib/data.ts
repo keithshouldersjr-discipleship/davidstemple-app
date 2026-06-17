@@ -111,7 +111,7 @@ export async function getChurchInfo(): Promise<ChurchInfo[]> {
     return mockChurchInfo;
   }
 
-  return (data as SupabaseChurchInfoRow[]).map((item) => ({
+  const databaseChurchInfo = (data as SupabaseChurchInfoRow[]).map((item) => ({
     id: item.id,
     topic: item.topic,
     question: item.question,
@@ -119,6 +119,18 @@ export async function getChurchInfo(): Promise<ChurchInfo[]> {
     sourceUrl: item.source_url ?? undefined,
     lastUpdated: item.last_updated,
   }));
+
+  const merged = new Map<string, ChurchInfo>();
+
+  for (const item of [...databaseChurchInfo, ...mockChurchInfo]) {
+    const existing = merged.get(item.id);
+
+    if (!existing || item.lastUpdated >= existing.lastUpdated) {
+      merged.set(item.id, item);
+    }
+  }
+
+  return Array.from(merged.values());
 }
 
 function toMinistryCategory(category: string): MinistryContact["category"] {

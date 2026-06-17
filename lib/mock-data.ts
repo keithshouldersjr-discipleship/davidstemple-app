@@ -341,27 +341,225 @@ export const events: Event[] = [
 
 export const churchInfo: ChurchInfo[] = [
   {
+    id: "info-service-times",
+    topic: "Service Times",
+    question: "What are the church service times?",
+    answer:
+      "Sunday School is at 8:30 AM, Morning Worship is at 9:30 AM, and Bible Study is at 11:00 AM and 6:00 PM.",
+    lastUpdated: "2026-06-17",
+  },
+  {
     id: "info-sunday-school",
-    topic: "Sunday School",
+    topic: "Service Times",
     question: "What time is Sunday School?",
-    answer: "Sunday School is listed in this first version as Sundays at 9:00 AM.",
-    lastUpdated: "2026-05-21",
+    answer:
+      "Sunday School is at 8:30 AM, Morning Worship is at 9:30 AM, and Bible Study is at 11:00 AM and 6:00 PM.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-location",
+    topic: "Plan a Visit",
+    question: "Where is David's Temple located?",
+    answer:
+      "David's Temple Missionary Baptist Church is located at 11273 Stewart Road, Tanner, AL 35671.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-guest-arrival",
+    topic: "Plan a Visit",
+    question: "What should I do when I arrive?",
+    answer:
+      "When you arrive, greeters, ushers, and parking attendants will be ready to help you find your way. If this is your first time visiting, let a parking attendant, greeter, or usher know and they will gladly help you from the parking lot to the sanctuary.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-parking",
+    topic: "Plan a Visit",
+    question: "Where do I park?",
+    answer:
+      "Parking attendants will help direct you to an available space. David's Temple is currently working to expand parking, so guests are encouraged to arrive a few minutes early.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-worship-expectations",
+    topic: "Plan a Visit",
+    question: "What is worship like?",
+    answer:
+      "Worship includes prayer, singing, Scripture, giving, and preaching from God's Word. You can expect a warm church family, heartfelt worship, and a message that helps you understand and apply the Bible to your life.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-guest-seating",
+    topic: "Plan a Visit",
+    question: "Where do I sit?",
+    answer:
+      "You are welcome to sit anywhere in the sanctuary. There are no assigned seats. If the sanctuary is full or you need help finding a comfortable place to sit, one of the ushers will gladly assist you.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-kids",
+    topic: "Children",
+    question: "What about my kids?",
+    answer:
+      "David's Temple offers nursery and youth church ministry for children from 0-14 years old. These ministries provide a safe, caring, and age-appropriate space where children can learn about Jesus and be encouraged in their faith.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-dress-code",
+    topic: "Plan a Visit",
+    question: "Is there a church dress code?",
+    answer:
+      "Come as you are. At David's Temple, you will see a little bit of everything. Some people dress up, and others dress more casually. We care far more about your presence than your outfit. We simply want you to feel welcome as you worship with us.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-first-time-singled-out",
+    topic: "Plan a Visit",
+    question: "Will I be singled out if I come as a first-time visitor?",
+    answer:
+      "No. We want to welcome you, but we will not embarrass you. You may be greeted warmly by our members, but we do not want you to feel pressured or put on the spot. We are simply grateful that you chose to worship with us.",
+    lastUpdated: "2026-06-17",
   },
   {
     id: "info-serving",
     topic: "Serving",
     question: "How can I serve?",
     answer:
-      "You can start by sharing your area of interest with the church office or a ministry leader.",
-    lastUpdated: "2026-05-21",
+      "A good next step is to visit the Join A Ministry page and connect with the ministry leader for the area where you would like to serve.",
+    sourceUrl: "/serve",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-serving-before-membership",
+    topic: "Serving",
+    question: "Can I serve before officially joining the church?",
+    answer:
+      "There are volunteer opportunities where non-members can partner with David's Temple in serving the community. When those opportunities are available, they will be made public. Membership is required before officially joining a ministry within the church, with the exception of the children's choir. All children are welcome to sing praises to the Lord.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-new-member-orientation",
+    topic: "New Members",
+    question: "Is there an orientation or training process?",
+    answer:
+      "When a believer becomes a member at David's Temple, they are partnered with a current member and invited to follow a new-member orientation process centered on connecting new members to ministries and establishing deep relationships.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-children-serving",
+    topic: "Serving",
+    question: "Can children serve?",
+    answer:
+      "Children are invited to serve as Junior Ushers, in the Youth Choir, and for special programs throughout the year. The level of service depends on the maturity of the individual child, but David's Temple encourages children to get engaged in serving as early as possible.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-background-checks",
+    topic: "Serving",
+    question: "Are background checks required for any ministries?",
+    answer:
+      "Yes. One of the values of the children's ministry is safety, so background checks are required for anyone working with the youth.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-serving-uniforms",
+    topic: "Serving",
+    question: "What should I wear when serving?",
+    answer:
+      "Uniforms and dress are at the discretion of each ministry. Ministry leaders are encouraged to exercise sensitivity when creating uniform expectations so members are not discouraged from serving.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-one-time-serving",
+    topic: "Serving",
+    question: "Are there virtual or one-time serving opportunities?",
+    answer:
+      "Yes. Members can serve as part of a lead team, which is an opportunity to serve without a long-term commitment. Because we live in a digital ecosystem, David's Temple also needs people who want to use their gifts behind the scenes on digital lead teams.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-professional-skills",
+    topic: "Serving",
+    question: "Can professional career skills be used to serve?",
+    answer:
+      "Yes. David's Temple is undergoing a digital transformation and has significant need for expertise in areas like IT, marketing, and legal. People with those backgrounds who want to use their gifts to the glory of God are encouraged to connect with a ministry leader or send a message to the church expressing their desire to serve.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-childcare-serving",
+    topic: "Serving",
+    question: "Is childcare provided while serving?",
+    answer:
+      "Childcare is provided during worship. During service opportunities, childcare options are determined by the availability of volunteers to support the event.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-leadership-development",
+    topic: "Leadership",
+    question: "Are there leadership development opportunities?",
+    answer:
+      "David's Temple's mission is to evangelize, equip, and empower believers to serve to the glory of God. Because of that core belief, the church holds a monthly leadership meeting that is not restricted to ministry leaders, but is open to all members who desire to grow and be empowered to lead and serve.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-spiritual-leader-training",
+    topic: "Leadership",
+    question: "Are team leaders trained spiritually as well as operationally?",
+    answer:
+      "David's Temple desires to continuously develop leaders at every level. From Sunday School, to Bible Study, and even the Sunday sermon, there is an intentional approach to growing all members spiritually. The church strives to emphasize Christian Education as the cornerstone for spiritual development.",
+    lastUpdated: "2026-06-17",
   },
   {
     id: "info-care",
     topic: "Care",
     question: "How do I submit a prayer or care request?",
     answer:
-      "For now, contact the church office so the care team can receive your request.",
-    lastUpdated: "2026-05-21",
+      "Prayer requests can be submitted through the Submit a Prayer Request card on the Resources page. The form allows you to include your name and contact information for follow-up or submit the request anonymously.",
+    sourceUrl: "/resources",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-pastor-background",
+    topic: "Pastor",
+    question: "What is the pastor's background?",
+    answer:
+      "Information about Pastor Keith can be found on the Pastor Bio page, including his background, education, ministry heart, and connection to the Tanner community.",
+    sourceUrl: "/pastor",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-age-groups",
+    topic: "Ministries",
+    question: "Are there specific groups for young adults, seniors, parents, or other stages of life?",
+    answer:
+      "David's Temple strives to offer ministry in an age-group-specific format to meet the needs of believers based on their unique stage in life. Educational ministries are offered for elementary children, teens, young adults, middle school, and senior adults.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-financial-transparency",
+    topic: "Church Life",
+    question: "Is the church financially transparent?",
+    answer:
+      "Yes. David's Temple believes in transparency and accountability at every level. The church holds an annual business meeting at the beginning of each calendar year where members receive a booklet with the previous year's complete expense report, the new year's budget, and the church's initiatives for the year.",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-pastor-office-hours",
+    topic: "Pastor",
+    question: "Does the pastor have office hours?",
+    answer:
+      "Pastor Keith's schedule is relatively flexible because he is bi-vocational. Meetings can be scheduled virtually or in person by submitting a message on the Pastor Bio page.",
+    sourceUrl: "/pastor",
+    lastUpdated: "2026-06-17",
+  },
+  {
+    id: "info-counseling",
+    topic: "Care",
+    question: "Is counseling available?",
+    answer:
+      "Counseling sessions, including needs such as grief, divorce, or marital support, can be scheduled with Pastor Keith by submitting a message through the Pastor Bio page.",
+    sourceUrl: "/pastor",
+    lastUpdated: "2026-06-17",
   },
 ];
 
@@ -452,7 +650,7 @@ export function getMockAssistantResponse(prompt: string) {
   const normalized = prompt.toLowerCase();
 
   if (normalized.includes("sunday school")) {
-    return "Sunday School is listed as Sundays at 9:00 AM. Please check official church updates for any schedule changes.";
+    return "Sunday School is at 8:30 AM, Morning Worship is at 9:30 AM, and Bible Study is at 11:00 AM and 6:00 PM.";
   }
 
   if (normalized.includes("event")) {
@@ -468,7 +666,7 @@ export function getMockAssistantResponse(prompt: string) {
   }
 
   if (normalized.includes("prayer") || normalized.includes("care")) {
-    return "For prayer or care requests, please contact the church office. Future versions can include a direct request form.";
+    return "Prayer requests can be submitted through the Submit a Prayer Request card on the Resources page. You can include your name and contact information for follow-up or submit the request anonymously.";
   }
 
   if (normalized.includes("connected")) {

@@ -142,24 +142,24 @@ insert into public.church_info (id, topic, question, answer, last_updated)
 values
   (
     'info-sunday-school',
-    'Sunday School',
+    'Service Times',
     'What time is Sunday School?',
-    'Sunday School is listed in this first version as Sundays at 9:00 AM. Please check official church updates for any schedule changes.',
-    '2026-05-21'
+    'Sunday School is at 8:30 AM, Morning Worship is at 9:30 AM, and Bible Study is at 11:00 AM and 6:00 PM.',
+    '2026-06-17'
   ),
   (
     'info-serving',
     'Serving',
     'How can I serve?',
-    'You can start by sharing your area of interest with the church office or a ministry leader.',
-    '2026-05-21'
+    'A good next step is to visit the Join A Ministry page and connect with the ministry leader for the area where you would like to serve.',
+    '2026-06-17'
   ),
   (
     'info-care',
     'Care',
     'How do I submit a prayer or care request?',
-    'For now, contact the church office so the care team can receive your request.',
-    '2026-05-21'
+    'Prayer requests can be submitted through the Submit a Prayer Request card on the Resources page. The form allows you to include your name and contact information for follow-up or submit the request anonymously.',
+    '2026-06-17'
   )
 on conflict (id) do update set
   topic = excluded.topic,
