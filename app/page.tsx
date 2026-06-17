@@ -1,11 +1,9 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, ChevronDown, Mail, Phone, UserRound } from "lucide-react";
-import { InterestButton } from "@/components/connect/interest-button";
-import { EventRequestButton } from "@/components/events/event-request-button";
+import { ChevronDown } from "lucide-react";
+import { HomeEventsPreview } from "@/components/events/home-events-preview";
 import { AskQuestionButton } from "@/components/home/ask-question-button";
 import { PlanVisitButton } from "@/components/home/plan-visit-button";
 import { ResourceCard } from "@/components/resources/resource-card";
-import { Button } from "@/components/ui/button";
 import { getEvents } from "@/lib/data";
 import { resources } from "@/lib/mock-data";
 import type { Event } from "@/lib/types";
@@ -30,18 +28,6 @@ function getEventsWithinDays(events: Event[], days: number) {
         item.date !== null && item.date >= today && item.date <= endDate,
     )
     .sort((a, b) => a.date.getTime() - b.date.getTime());
-}
-
-function formatMonth(date: Date) {
-  return new Intl.DateTimeFormat("en-US", { month: "short" }).format(date);
-}
-
-function formatDay(date: Date) {
-  return new Intl.DateTimeFormat("en-US", { day: "2-digit" }).format(date);
-}
-
-function cleanPhone(phone: string) {
-  return phone.replace(/[^\d+]/g, "");
 }
 
 export default async function Home() {
@@ -136,99 +122,7 @@ export default async function Home() {
             </h2>
           </div>
         </div>
-        <div className="overflow-hidden rounded-3xl border border-[var(--brand-border)] bg-white shadow-sm shadow-slate-900/5">
-          <div className="border-b border-[var(--brand-border)] bg-[var(--brand-soft)] px-5 py-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3 text-[var(--brand-navy)]">
-                <CalendarDays className="h-5 w-5 text-[var(--brand-burgundy)]" />
-                <p className="font-semibold">Calendar preview</p>
-              </div>
-              <div className="grid gap-2 sm:flex sm:items-center">
-                <EventRequestButton size="sm" className="w-full sm:w-auto" />
-                <Link href="/events">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="w-full sm:w-auto"
-                  >
-                    View full calendar
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-          <div className="max-h-[26rem] overflow-y-auto overscroll-contain scroll-smooth divide-y divide-[var(--brand-border)]">
-            {upcomingEvents.map(({ event, date }) => (
-              <div
-                key={event.id}
-                className="grid min-h-24 grid-cols-[4.5rem_1fr] gap-4 p-4 transition hover:bg-[var(--brand-soft)] sm:grid-cols-[5.25rem_1fr_auto] sm:items-center"
-              >
-                <div className="rounded-2xl border border-[var(--brand-burgundy)]/15 bg-[var(--brand-burgundy-soft)] px-3 py-2 text-center">
-                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--brand-burgundy)]">
-                    {formatMonth(date)}
-                  </p>
-                  <p className="text-2xl font-semibold text-[var(--brand-navy)]">
-                    {formatDay(date)}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-semibold text-[var(--brand-navy)]">
-                    {event.title}
-                  </p>
-                  <p className="mt-1 text-sm leading-6 text-[var(--brand-muted)]">
-                    {event.time} · {event.location}
-                  </p>
-                  {event.leaderName || event.leaderEmail || event.leaderPhone ? (
-                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[var(--brand-muted)]">
-                      <span className="inline-flex items-center gap-2 font-medium text-[var(--brand-navy)]">
-                        <UserRound className="h-4 w-4 text-[var(--brand-burgundy)]" />
-                        {event.leaderName ?? "Team leader"}
-                      </span>
-                      {event.leaderEmail ? (
-                        <Link href={`mailto:${event.leaderEmail}?subject=${encodeURIComponent(`I would like to help with ${event.title}`)}`} className="inline-flex items-center gap-1.5 font-medium text-[var(--brand-burgundy)]">
-                          <Mail className="h-4 w-4" />
-                          Email
-                        </Link>
-                      ) : null}
-                      {event.leaderPhone ? (
-                        <Link href={`sms:${cleanPhone(event.leaderPhone)}`} className="inline-flex items-center gap-1.5 font-medium text-[var(--brand-burgundy)]">
-                          <Phone className="h-4 w-4" />
-                          Text
-                        </Link>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {event.requestVolunteers && event.supportNeeded?.length ? (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {event.supportNeeded.map((item) => (
-                        <span key={item} className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-xs font-medium text-[var(--brand-navy)]">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-                <div className="hidden gap-2 sm:grid">
-                  {event.requestVolunteers ? (
-                    <InterestButton
-                      sourceType="event"
-                      sourceId={event.id}
-                      sourceTitle={event.title}
-                      interestArea={event.ministry ?? event.title}
-                      supportNeeded={event.supportNeeded}
-                      label="Volunteer"
-                      variant="secondary"
-                    />
-                  ) : null}
-                  <Link href="/events" className="rounded-full border border-[var(--brand-border)] px-4 py-2 text-center text-sm font-medium text-[var(--brand-muted)] transition hover:border-[var(--brand-burgundy)]/35 hover:bg-white">
-                    Details
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <HomeEventsPreview events={upcomingEvents.map(({ event }) => event)} />
       </section>
 
       <section className="bg-white">

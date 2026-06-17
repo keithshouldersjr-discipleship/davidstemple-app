@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BookOpen, GraduationCap, HeartHandshake, Home } from "lucide-react";
+import { PastorConnectButton } from "@/components/pastor/pastor-connect-button";
 import { Button } from "@/components/ui/button";
 
 export default function PastorPage() {
@@ -92,6 +93,9 @@ export default function PastorPage() {
                 and a proud father to their daughter, Kennedi. He considers his family one of God&apos;s greatest gifts in
                 his life.
               </p>
+            </div>
+            <div className="mt-8 border-t border-[var(--brand-border)] pt-6">
+              <PastorConnectButton />
             </div>
           </article>
         </div>
