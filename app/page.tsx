@@ -36,18 +36,18 @@ export default async function Home() {
   const upcomingEvents = getEventsWithinDays(events, 90);
   const churchLifePhotos = [
     {
+      src: "/church-life/children-and-youth.png",
+      title: "Families",
+      className: "sm:col-span-2",
+    },
+    {
       src: "/church-life/fellowship-outside.png",
       title: "Fellowship",
-      className: "sm:col-span-2",
+      className: "",
     },
     {
       src: "/church-life/youth-craft-table.png",
       title: "Youth",
-      className: "",
-    },
-    {
-      src: "/church-life/children-playing.png",
-      title: "Families",
       className: "",
     },
   ];
@@ -94,8 +94,8 @@ export default async function Home() {
           <div className="grid min-h-[22rem] grid-cols-2 gap-3 sm:min-h-[30rem]">
             <div
               className="col-span-2 rounded-3xl bg-cover bg-center shadow-2xl shadow-slate-950/30 sm:col-span-1 sm:row-span-2"
-              style={{ backgroundImage: "url('/church-life/fellowship-outside.png')" }}
-              aria-label="David's Temple members fellowshipping outside"
+              style={{ backgroundImage: "url('/church-life/worship-gathering.png')" }}
+              aria-label="David's Temple members worshiping together"
             />
             <div
               className="rounded-3xl bg-cover bg-center shadow-xl shadow-slate-950/24"
@@ -104,8 +104,8 @@ export default async function Home() {
             />
             <div
               className="rounded-3xl bg-cover bg-center shadow-xl shadow-slate-950/24"
-              style={{ backgroundImage: "url('/church-life/youth-smiling.png')" }}
-              aria-label="David's Temple youth smiling"
+              style={{ backgroundImage: "url('/church-life/community-service.png')" }}
+              aria-label="David's Temple members serving the community"
             />
           </div>
         </div>

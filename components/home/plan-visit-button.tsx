@@ -78,7 +78,7 @@ export function PlanVisitButton() {
           onClick={() => setIsOpen(false)}
         >
           <Card className="max-h-[90vh] w-full max-w-3xl overflow-hidden" onClick={(event) => event.stopPropagation()}>
-            <div className="relative min-h-44 bg-cover bg-center" style={{ backgroundImage: "url('/church-life/fellowship-outside.png')" }}>
+            <div className="relative min-h-44 bg-cover bg-center" style={{ backgroundImage: "url('/church-life/children-playing.png')" }}>
               <div className="absolute inset-0 bg-gradient-to-r from-[var(--brand-navy)]/92 via-[var(--brand-navy)]/68 to-transparent" />
               <div className="relative flex h-full min-h-44 items-start justify-between gap-4 p-6 text-white">
                 <div>
