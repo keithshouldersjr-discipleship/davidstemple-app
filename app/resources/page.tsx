@@ -11,7 +11,7 @@ export default function ResourcesPage() {
         <h1 className="text-4xl font-semibold text-[var(--brand-navy)]">Helpful church links</h1>
         <p className="text-lg leading-8 text-[var(--brand-muted)]">
           Browse visit information, growth opportunities, serving pathways, care
-          resources, giving links, and ministry updates.
+          resources, and ministry updates.
         </p>
       </div>
       <ResourceGrid resources={resources} />

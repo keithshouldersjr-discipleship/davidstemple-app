@@ -8,10 +8,10 @@ import type { Resource, ResourceCategory } from "@/lib/types";
 
 const categories: ResourceCategory[] = [
   "Visit",
+  "Info",
   "Grow",
   "Serve",
   "Care",
-  "Give",
   "Ministry Updates",
 ];
 

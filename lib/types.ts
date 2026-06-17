@@ -1,5 +1,6 @@
 export type ResourceCategory =
   | "Visit"
+  | "Info"
   | "Grow"
   | "Serve"
   | "Care"

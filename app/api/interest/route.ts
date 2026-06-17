@@ -14,6 +14,26 @@ type InterestBody = {
   supportNeeded?: string[];
 };
 
+const churchEmail = "keithshouldersjr@gmail.com";
+
+const ministryLeaderEmailsBySourceId: Record<string, string> = {
+  "mens-ministry": "mauricepryor3@gmail.com",
+  "womens-ministry": "Shellia@bellsouth.net",
+  "christian-education": "donald.wicks@gmail.com",
+  "youth-ministry": "nicoleandrews092813@gmail.com",
+  "media-ministry": "mauricepryor3@gmail.com",
+  "ushers-ministry": "Taranicole_rn@yahoo.com",
+};
+
+const ministryLeaderEmailsByTitle: Record<string, string> = {
+  "men's ministry": "mauricepryor3@gmail.com",
+  "women's ministry": "Shellia@bellsouth.net",
+  "christian education": "donald.wicks@gmail.com",
+  "youth ministry": "nicoleandrews092813@gmail.com",
+  "media ministry": "mauricepryor3@gmail.com",
+  "ushers ministry": "Taranicole_rn@yahoo.com",
+};
+
 function clean(value?: string) {
   return value?.trim() ?? "";
 }
@@ -31,10 +51,20 @@ function parseEmailRecipients(value?: string) {
   };
 }
 
+function getConnectionRecipient(request: InterestBody) {
+  if (request.sourceType === "ministry") {
+    const sourceId = clean(request.sourceId);
+    const sourceTitle = clean(request.sourceTitle).toLowerCase();
+    return ministryLeaderEmailsBySourceId[sourceId] ?? ministryLeaderEmailsByTitle[sourceTitle] ?? churchEmail;
+  }
+
+  return process.env.CONNECTION_REQUEST_RECIPIENTS ?? process.env.EVENT_REQUEST_RECIPIENTS ?? churchEmail;
+}
+
 async function sendInterestEmail(request: Required<Pick<InterestBody, "name" | "interestArea" | "sourceType" | "sourceTitle">> & InterestBody) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EVENT_REQUEST_FROM ?? "David's Temple App <onboarding@resend.dev>";
-  const recipientConfig = process.env.CONNECTION_REQUEST_RECIPIENTS ?? process.env.EVENT_REQUEST_RECIPIENTS;
+  const recipientConfig = getConnectionRecipient(request);
   const { validRecipients, invalidRecipients } = parseEmailRecipients(recipientConfig);
 
   if (!apiKey) {
