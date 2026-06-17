@@ -21,6 +21,7 @@ values
   ('jabo9828@gmail.com', 'admin'),
   ('kejaunwright@gmail.com', 'admin'),
   ('jonesmi411@yahoo.com', 'admin'),
-  ('karomc1987@gmail.com', 'admin')
+  ('karomc1987@gmail.com', 'admin'),
+  ('shauna.croom@outlook.com', 'admin')
 on conflict (email) do update set
   role = excluded.role;
