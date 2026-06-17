@@ -150,7 +150,7 @@ export function EventRequestButton({
     <>
       <Button type="button" size={size} variant={variant} className={className} onClick={openRequestForm}>
         <Plus className="h-4 w-4" />
-        Submit request
+        Add Event
       </Button>
 
       {isRequestOpen ? (
