@@ -12,28 +12,41 @@ const navLinks = [
   { href: "/resources", label: "Resources" },
   { href: "/events", label: "Events" },
   { href: "/serve", label: "Join A Ministry" },
-  { href: "/admin", label: "Admin" },
+  { href: "/admin", label: "Leader Hub" },
 ];
 
-const communicationsManagerEmails = [
-  "keithshouldersjr@gmail.com",
-  "jonesmi411@yahoo.com",
-  "karomc1987@gmail.com",
-];
+const dtSocialTeamEmails = (
+  process.env.NEXT_PUBLIC_DT_SOCIAL_TEAM_EMAILS ?? "keithshouldersjr@gmail.com,keith@example.com"
+)
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
 
 export function SiteHeader() {
   const [isOpen, setIsOpen] = useState(false);
-  const [showCommunicationsLink, setShowCommunicationsLink] = useState(false);
+  const [showDtSocialLink, setShowDtSocialLink] = useState(false);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
 
     if (!supabase) return;
 
+    function updateTeamLinks(email?: string | null) {
+      const normalizedEmail = email?.toLowerCase();
+      setShowDtSocialLink(Boolean(normalizedEmail && dtSocialTeamEmails.includes(normalizedEmail)));
+    }
+
     supabase.auth.getUser().then(({ data }) => {
-      const email = data.user?.email?.toLowerCase();
-      setShowCommunicationsLink(Boolean(email && communicationsManagerEmails.includes(email)));
+      updateTeamLinks(data.user?.email);
     });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      updateTeamLinks(session?.user.email);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -77,14 +90,14 @@ export function SiteHeader() {
                 {link.label}
               </Link>
             ))}
-            {showCommunicationsLink ? (
-              <Link
-                href="/admin?tab=events"
+            {showDtSocialLink ? (
+              <a
+                href="/dtsocial/"
                 className="rounded-2xl px-4 py-3 text-base font-medium !text-white hover:bg-white/10"
                 onClick={() => setIsOpen(false)}
               >
-                Communications
-              </Link>
+                DT Social
+              </a>
             ) : null}
           </div>
         </nav>
