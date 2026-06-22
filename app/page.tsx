@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
+import { FyiEventsModal } from "@/components/events/fyi-events-modal";
 import { HomeEventsPreview } from "@/components/events/home-events-preview";
 import { AskQuestionButton } from "@/components/home/ask-question-button";
 import { PlanVisitButton } from "@/components/home/plan-visit-button";
@@ -34,6 +35,7 @@ export default async function Home() {
   const events = await getEvents();
   const featuredResources = resources.filter((resource) => resource.isActive).sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 6);
   const upcomingEvents = getEventsWithinDays(events, 90);
+  const upcomingEventItems = upcomingEvents.map(({ event }) => event);
   const churchLifePhotos = [
     {
       src: "/church-life/children-and-youth.png",
@@ -54,6 +56,7 @@ export default async function Home() {
 
   return (
     <main>
+      <FyiEventsModal events={upcomingEventItems} />
       <section className="relative overflow-hidden bg-[var(--brand-navy)]">
         <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:px-6 md:grid-cols-[0.96fr_1.04fr] md:items-center lg:px-8 lg:py-12">
           <div className="space-y-7">
@@ -122,7 +125,7 @@ export default async function Home() {
             </h2>
           </div>
         </div>
-        <HomeEventsPreview events={upcomingEvents.map(({ event }) => event)} />
+        <HomeEventsPreview events={upcomingEventItems} />
       </section>
 
       <section className="bg-white">

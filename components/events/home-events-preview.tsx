@@ -11,6 +11,8 @@ import type { Event } from "@/lib/types";
 
 type HomeEventsPreviewProps = {
   events: Event[];
+  showHeader?: boolean;
+  listClassName?: string;
 };
 
 function parseEventDate(event: Event) {
@@ -30,7 +32,7 @@ function cleanPhone(phone: string) {
   return phone.replace(/[^\d+]/g, "");
 }
 
-export function HomeEventsPreview({ events }: HomeEventsPreviewProps) {
+export function HomeEventsPreview({ events, showHeader = true, listClassName = "max-h-[26rem]" }: HomeEventsPreviewProps) {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const selectedEvent = useMemo(
     () => events.find((event) => event.id === selectedEventId),
@@ -40,28 +42,30 @@ export function HomeEventsPreview({ events }: HomeEventsPreviewProps) {
   return (
     <>
       <div className="overflow-hidden rounded-3xl border border-[var(--brand-border)] bg-white shadow-sm shadow-slate-900/5">
-        <div className="border-b border-[var(--brand-border)] bg-[var(--brand-soft)] px-5 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3 text-[var(--brand-navy)]">
-              <CalendarDays className="h-5 w-5 text-[var(--brand-burgundy)]" />
-              <p className="font-semibold">Calendar preview</p>
-            </div>
-            <div className="grid gap-2 sm:flex sm:items-center">
-              <EventRequestButton size="sm" className="w-full sm:w-auto" />
-              <Link href="/events">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                >
-                  View full calendar
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+        {showHeader ? (
+          <div className="border-b border-[var(--brand-border)] bg-[var(--brand-soft)] px-5 py-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3 text-[var(--brand-navy)]">
+                <CalendarDays className="h-5 w-5 text-[var(--brand-burgundy)]" />
+                <p className="font-semibold">Calendar preview</p>
+              </div>
+              <div className="grid gap-2 sm:flex sm:items-center">
+                <EventRequestButton size="sm" className="w-full sm:w-auto" />
+                <Link href="/events">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                  >
+                    View full calendar
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="max-h-[26rem] overflow-y-auto overscroll-contain scroll-smooth divide-y divide-[var(--brand-border)]">
+        ) : null}
+        <div className={`${listClassName} overflow-y-auto overscroll-contain scroll-smooth divide-y divide-[var(--brand-border)]`}>
           {events.map((event) => {
             const date = parseEventDate(event);
 
