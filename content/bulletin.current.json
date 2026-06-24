@@ -1,0 +1,101 @@
+{
+  "slug": "weekly-update-2026-06-23",
+  "dateRange": "June 23 - June 29, 2026",
+  "title": "David's Temple Weekly Update",
+  "subtitle": "Helping our church family stay informed, connected, and engaged.",
+  "missionLine": "Evangelize. Equip. Empower.",
+  "pastor": {
+    "name": "Pastor Keith",
+    "image": "/pastor/keith-shoulders.png",
+    "noteTitle": "A Note From Pastor Keith",
+    "note": "Church family, thank you for continuing to serve, invite, and stay engaged. This week, let's keep leaning into what God is doing among us as we grow together in worship, discipleship, and service. I look forward to seeing you this Sunday!"
+  },
+  "focus": {
+    "title": "This Week's Focus",
+    "body": "Let's stay connected to God, to each other, and to the mission as we Serve Like Jesus!"
+  },
+  "weeklySchedule": [
+    { "label": "Sunday School", "time": "8:30 AM", "icon": "users" },
+    { "label": "Morning Worship", "time": "9:30 AM", "icon": "cross" },
+    { "label": "Bible Study (Sunday)", "time": "11:00 AM", "icon": "book" },
+    { "label": "Bible Study (Wednesday)", "time": "6:00 PM", "icon": "book" },
+    { "label": "Prayer Meeting", "time": "First Wednesdays", "icon": "hands" }
+  ],
+  "importantLinks": [
+    { "label": "Plan Your Visit", "url": "/resources#visit", "icon": "users" },
+    { "label": "Give Online", "url": "/resources#give", "icon": "heart" },
+    { "label": "DT Social App", "url": "/dtsocial/", "icon": "phone" },
+    { "label": "Volunteer Sign-Up", "url": "/serve", "icon": "hands" },
+    { "label": "Church Website", "url": "/", "icon": "globe" }
+  ],
+  "sundayInvite": {
+    "title": "Join Us This Sunday!",
+    "image": "/church-life/worship-gathering.png",
+    "body": "We invite you to join us for Sunday School and Morning Worship. This Sunday, we will continue growing together through worship, the Word, and fellowship.",
+    "emphasis": "Don't forget to invite someone!",
+    "buttonLabel": "View Sunday Details",
+    "buttonUrl": "/resources#visit"
+  },
+  "upcomingEvents": [
+    { "date": "June 30", "title": "Youth Activity", "description": "Fun, fellowship, and faith-building for our youth." },
+    { "date": "July 6", "title": "Communion Sunday", "description": "Join us as we remember the sacrifice of Jesus." },
+    { "date": "July 13", "title": "Family & Friends Day", "description": "Bring someone with you. Everyone is welcome." },
+    { "date": "July 20", "title": "Church Meeting", "description": "All members are encouraged to attend." }
+  ],
+  "serve": {
+    "title": "Serve & Get Involved",
+    "intro": "There are many ways to use your gifts and make an impact!",
+    "items": [
+      "Children's Church Volunteers",
+      "Social Media Team",
+      "Sunday School Helpers",
+      "Transportation Ministry",
+      "Usher & Hospitality Team"
+    ],
+    "callout": "Sign up today and be a blessing!"
+  },
+  "ministrySpotlight": {
+    "title": "Ministry Spotlight",
+    "ministry": "Social Media Team",
+    "image": "/church-life/community-service.png",
+    "body": "The Social Media Team helps us capture, curate, and communicate what God is doing at David's Temple. If you love creativity and connecting with people, this team is for you!",
+    "buttonLabel": "Learn More",
+    "buttonUrl": "/serve"
+  },
+  "prayerCare": {
+    "title": "Prayer & Care",
+    "intro": "Please keep the following in prayer:",
+    "items": [
+      "Sick and shut-in members",
+      "Bereaved families",
+      "Students and youth",
+      "Upcoming church efforts",
+      "Our church family and leaders"
+    ],
+    "contactLabel": "Contact Us",
+    "contactUrl": "/resources#care"
+  },
+  "stayConnected": {
+    "title": "Stay Connected",
+    "intro": "Here are 4 simple ways to stay engaged and help our church grow!",
+    "items": [
+      "Attend worship",
+      "Invite someone",
+      "Share photos in the DT Social app",
+      "Serve where you can"
+    ],
+    "closing": "Let's continue serving like Jesus."
+  },
+  "footer": {
+    "address": "11273 Stewart Road, Tanner, AL 35671",
+    "serviceTimes": [
+      "Sunday School 8:30 AM",
+      "Morning Worship 9:30 AM",
+      "Bible Study 11:00 AM & 6:00 PM"
+    ],
+    "websiteLabel": "davidstemple.app",
+    "websiteUrl": "https://davidstemple.app",
+    "facebookUrl": "https://www.facebook.com/",
+    "instagramUrl": "https://www.instagram.com/"
+  }
+}
