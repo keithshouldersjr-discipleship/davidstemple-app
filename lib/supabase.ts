@@ -66,6 +66,17 @@ export type SupabaseMemberProfileRow = {
   notes: string | null;
 };
 
+export type SupabaseBulletinIssueRow = {
+  id: string;
+  slug: string;
+  content: unknown;
+  is_published: boolean;
+  published_at: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export function isSupabaseConfigured() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }

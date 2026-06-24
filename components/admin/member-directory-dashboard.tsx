@@ -17,7 +17,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { BulletinAdminPanel } from "@/components/admin/bulletin-admin-panel";
 import { EventsAdminPanel } from "@/components/admin/events-admin-panel";
+import { currentBulletin } from "@/lib/bulletin-data";
 import {
   createSupabaseBrowserClient,
   type SupabaseMemberProfileRow,
@@ -41,7 +43,7 @@ type MemberFormState = {
 };
 
 type DirectoryRole = "owner" | "admin" | "leader" | "member" | "none";
-type AdminTab = "directory" | "events";
+type AdminTab = "directory" | "events" | "bulletin";
 type ProfileModalMode = "view" | "edit";
 
 const communicationsManagerEmails = [
@@ -139,7 +141,9 @@ function getInitialAdminTab(): AdminTab {
     return "directory";
   }
 
-  return new URLSearchParams(window.location.search).get("tab") === "events" ? "events" : "directory";
+  const tab = new URLSearchParams(window.location.search).get("tab");
+
+  return tab === "events" || tab === "bulletin" ? tab : "directory";
 }
 
 function profileToForm(profile: MemberProfile): MemberFormState {
@@ -202,6 +206,7 @@ export function MemberDirectoryDashboard() {
   const canManageAll = directoryRole === "owner" || directoryRole === "admin";
   const isCommunicationManager = communicationsManagerEmails.includes(currentUserEmail);
   const canManageEvents = canManageAll || isCommunicationManager;
+  const canManageBulletin = canManageAll || isCommunicationManager;
   const canViewFullDirectory =
     directoryRole === "owner" || directoryRole === "admin" || directoryRole === "leader";
 
@@ -472,6 +477,7 @@ export function MemberDirectoryDashboard() {
         {[
           ["directory", "Member Directory"],
           ["events", "Events"],
+          ["bulletin", "Bulletin"],
         ].map(([tab, label]) => (
           <button
             key={tab}
@@ -485,7 +491,11 @@ export function MemberDirectoryDashboard() {
             onClick={() => {
               const nextTab = tab as AdminTab;
               setActiveTab(nextTab);
-              window.history.replaceState(null, "", nextTab === "events" ? "/admin?tab=events" : "/admin");
+              window.history.replaceState(
+                null,
+                "",
+                nextTab === "directory" ? "/admin" : `/admin?tab=${nextTab}`,
+              );
             }}
           >
             {label}
@@ -494,6 +504,13 @@ export function MemberDirectoryDashboard() {
       </div>
 
       {activeTab === "events" ? <EventsAdminPanel canManageAll={canManageEvents} /> : null}
+
+      {activeTab === "bulletin" ? (
+        <BulletinAdminPanel
+          canManageBulletin={canManageBulletin}
+          initialBulletin={currentBulletin}
+        />
+      ) : null}
 
       {activeTab === "directory" ? (
       <>

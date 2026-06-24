@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { WeeklyBulletin } from "@/components/bulletin/weekly-bulletin";
-import { currentBulletin } from "@/lib/bulletin-data";
+import { getCurrentBulletin } from "@/lib/bulletin-data";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Weekly Bulletin | David's Temple",
@@ -14,6 +16,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BulletinPage() {
-  return <WeeklyBulletin bulletin={currentBulletin} />;
+export default async function BulletinPage() {
+  const bulletin = await getCurrentBulletin();
+
+  return <WeeklyBulletin bulletin={bulletin} />;
 }
