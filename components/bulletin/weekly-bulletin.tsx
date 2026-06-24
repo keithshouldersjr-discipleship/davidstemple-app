@@ -69,15 +69,17 @@ function ActionLink({
   href,
   children,
   className = "",
+  forceWhiteText = true,
 }: {
   href: string;
   children: ReactNode;
   className?: string;
+  forceWhiteText?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[var(--brand-navy)] px-5 py-2 text-sm font-black uppercase text-white shadow-sm transition hover:bg-[var(--brand-navy-dark)] ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[var(--brand-navy)] px-5 py-2 text-sm font-black uppercase text-white shadow-sm transition hover:bg-[var(--brand-navy-dark)] ${forceWhiteText ? "!text-white" : ""} ${className}`}
     >
       {children}
       <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -86,6 +88,12 @@ function ActionLink({
 }
 
 export function WeeklyBulletin({ bulletin }: { bulletin: WeeklyBulletin }) {
+  const spotlightImage =
+    bulletin.ministrySpotlight.ministry === "Social Media Team" &&
+    bulletin.ministrySpotlight.image === "/church-life/community-service.png"
+      ? "/church-life/social-media-spotlight.png"
+      : bulletin.ministrySpotlight.image;
+
   return (
     <main className="bg-slate-200 py-4 sm:py-8">
       <article className="mx-auto max-w-6xl overflow-hidden bg-white shadow-2xl shadow-slate-950/15">
@@ -272,7 +280,7 @@ export function WeeklyBulletin({ bulletin }: { bulletin: WeeklyBulletin }) {
               <div className="grid gap-4 p-4 sm:grid-cols-[135px_1fr] lg:grid-cols-1 xl:grid-cols-[135px_1fr]">
                 <div>
                   <Image
-                    src={bulletin.ministrySpotlight.image}
+                    src={spotlightImage}
                     alt={bulletin.ministrySpotlight.ministry}
                     width={360}
                     height={240}
@@ -280,7 +288,7 @@ export function WeeklyBulletin({ bulletin }: { bulletin: WeeklyBulletin }) {
                   />
                   <ActionLink
                     href={bulletin.ministrySpotlight.buttonUrl}
-                    className="mt-3 w-full bg-[var(--brand-burgundy)] hover:bg-[#700019]"
+                    className="mt-3 w-full"
                   >
                     {bulletin.ministrySpotlight.buttonLabel}
                   </ActionLink>
@@ -306,7 +314,11 @@ export function WeeklyBulletin({ bulletin }: { bulletin: WeeklyBulletin }) {
                   ))}
                 </ul>
                 <div className="mt-4 border-t border-[var(--brand-border)] pt-3">
-                  <ActionLink href={bulletin.prayerCare.contactUrl} className="bg-white px-0 text-[var(--brand-navy)] shadow-none hover:bg-white hover:text-[var(--brand-burgundy)]">
+                  <ActionLink
+                    href={bulletin.prayerCare.contactUrl}
+                    className="bg-white px-0 text-[var(--brand-navy)] shadow-none hover:bg-white hover:text-[var(--brand-burgundy)]"
+                    forceWhiteText={false}
+                  >
                     {bulletin.prayerCare.contactLabel}
                   </ActionLink>
                 </div>
