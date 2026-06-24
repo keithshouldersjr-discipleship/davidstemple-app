@@ -21,17 +21,7 @@ security definer
 set search_path = public
 as $$
   select
-    lower(auth.jwt() ->> 'email') in (
-      'keithshouldersjr@gmail.com',
-      'jonesmi411@yahoo.com',
-      'karomc1987@gmail.com'
-    )
-    or exists (
-      select 1
-      from public.admin_users
-      where lower(email) = lower(auth.jwt() ->> 'email')
-        and role in ('owner', 'admin')
-    );
+    lower(auth.jwt() ->> 'email') = 'keithshouldersjr@gmail.com';
 $$;
 
 drop policy if exists "Public can read published bulletin issues" on public.bulletin_issues;

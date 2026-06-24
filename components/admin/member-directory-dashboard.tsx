@@ -52,6 +52,8 @@ const communicationsManagerEmails = [
   "karomc1987@gmail.com",
 ];
 
+const bulletinManagerEmail = "keithshouldersjr@gmail.com";
+
 const emptyForm: MemberFormState = {
   firstName: "",
   lastName: "",
@@ -206,7 +208,7 @@ export function MemberDirectoryDashboard() {
   const canManageAll = directoryRole === "owner" || directoryRole === "admin";
   const isCommunicationManager = communicationsManagerEmails.includes(currentUserEmail);
   const canManageEvents = canManageAll || isCommunicationManager;
-  const canManageBulletin = canManageAll || isCommunicationManager;
+  const canManageBulletin = currentUserEmail === bulletinManagerEmail;
   const canViewFullDirectory =
     directoryRole === "owner" || directoryRole === "admin" || directoryRole === "leader";
 
@@ -477,7 +479,7 @@ export function MemberDirectoryDashboard() {
         {[
           ["directory", "Member Directory"],
           ["events", "Events"],
-          ["bulletin", "Bulletin"],
+          ...(canManageBulletin ? ([["bulletin", "Bulletin"]] as const) : []),
         ].map(([tab, label]) => (
           <button
             key={tab}

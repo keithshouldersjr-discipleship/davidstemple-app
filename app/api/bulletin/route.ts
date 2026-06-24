@@ -3,11 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getCurrentBulletin, type WeeklyBulletin } from "@/lib/bulletin-data";
 
-const bulletinManagerEmails = [
-  "keithshouldersjr@gmail.com",
-  "jonesmi411@yahoo.com",
-  "karomc1987@gmail.com",
-];
+const bulletinManagerEmail = "keithshouldersjr@gmail.com";
 
 function clean(value?: string) {
   return value?.trim() ?? "";
@@ -57,18 +53,7 @@ async function canManageBulletin(request: Request) {
     return { allowed: false, configured, email, supabase };
   }
 
-  const { data, error } = await supabase
-    .from("admin_users")
-    .select("role")
-    .eq("email", email)
-    .maybeSingle();
-
-  const role = data?.role as string | undefined;
-  const allowed =
-    bulletinManagerEmails.includes(email) ||
-    Boolean(!error && role && ["owner", "admin"].includes(role));
-
-  return { allowed, configured, email, supabase };
+  return { allowed: email === bulletinManagerEmail, configured, email, supabase };
 }
 
 function validateBulletin(body: unknown): WeeklyBulletin | null {
