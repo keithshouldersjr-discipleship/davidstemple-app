@@ -341,22 +341,28 @@ export function BulletinAdminPanel({
 
               <Card className="rounded-2xl">
                 <CardHeader>
-                  <CardTitle>Focus and invitation</CardTitle>
+                  <CardTitle>Scripture and invitation</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Field label="Focus title">
+                  <Field label="Scripture section title">
                     <Input
                       value={form.focus.title}
                       onChange={(event) => updateNested("focus", "title", event.target.value)}
+                      placeholder="This Sunday's Scripture"
                       required
                     />
                   </Field>
-                  <Field label="Focus body">
+                  <Field label="Scripture passage">
                     <Textarea
                       value={form.focus.body}
                       onChange={(value) => updateNested("focus", "body", value)}
-                      rows={4}
+                      rows={9}
+                      placeholder={"John 3:16-17 (KJV)\n\nFor God so loved the world..."}
                     />
+                    <p className="text-xs leading-5 text-[var(--brand-muted)]">
+                      Paste the passage exactly as you want it displayed. Line
+                      breaks will be preserved on the bulletin.
+                    </p>
                   </Field>
                   <Field label="Sunday invite title">
                     <Input

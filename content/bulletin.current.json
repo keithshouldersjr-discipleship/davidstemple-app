@@ -11,8 +11,8 @@
     "note": "Church family, thank you for continuing to serve, invite, and stay engaged. This week, let's keep leaning into what God is doing among us as we grow together in worship, discipleship, and service. I look forward to seeing you this Sunday!"
   },
   "focus": {
-    "title": "This Week's Focus",
-    "body": "Let's stay connected to God, to each other, and to the mission as we Serve Like Jesus!"
+    "title": "This Sunday's Scripture",
+    "body": "Paste this Sunday's scripture passage here.\n\nLine breaks will be preserved on the bulletin."
   },
   "weeklySchedule": [
     { "label": "Sunday School", "time": "8:30 AM", "icon": "users" },

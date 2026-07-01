@@ -159,7 +159,7 @@ export function WeeklyBulletin({ bulletin }: { bulletin: WeeklyBulletin }) {
 
             <aside className="flex min-h-56 flex-col justify-center rounded-lg bg-[radial-gradient(circle_at_22%_20%,#0b4b84,#001f3f_62%)] p-7 text-white">
               <div className="flex items-center gap-4">
-                <BulletinIcon name="target" className="h-12 w-12 shrink-0" />
+                <BulletinIcon name="book" className="h-12 w-12 shrink-0" />
                 <div>
                   <h2 className="text-2xl font-black uppercase">
                     {bulletin.focus.title}
@@ -167,7 +167,7 @@ export function WeeklyBulletin({ bulletin }: { bulletin: WeeklyBulletin }) {
                   <div className="mt-3 h-1 w-32 bg-[var(--brand-burgundy)]" />
                 </div>
               </div>
-              <p className="mt-6 text-xl font-medium leading-8">
+              <p className="mt-6 whitespace-pre-line border-l-4 border-white/35 pl-5 text-lg font-semibold leading-8">
                 {bulletin.focus.body}
               </p>
             </aside>

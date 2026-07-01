@@ -41,7 +41,7 @@ The admin form maps to the same sections shown on the bulletin:
 
 - Header, slug, and date range
 - Pastor note
-- This week's focus
+- This Sunday's scripture passage
 - Weekly schedule
 - Important links
 - Sunday invitation
@@ -59,7 +59,8 @@ The admin form maps to the same sections shown on the bulletin:
    - `slug`
    - `dateRange`
    - `pastor.note`
-   - `focus.body`
+   - `focus.title`
+   - `focus.body` for the scripture passage
    - `weeklySchedule`
    - `importantLinks`
    - `sundayInvite`
