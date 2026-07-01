@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Check,
@@ -753,9 +754,18 @@ export function MemberDirectoryDashboard() {
               <h1>{directoryPrintTitle}</h1>
               <p>{directoryPrintFilters}</p>
             </div>
-            <div className="admin-directory-print-meta">
-              <span>{filteredMembers.length} member{filteredMembers.length === 1 ? "" : "s"}</span>
-              <span>{new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date())}</span>
+            <div className="admin-directory-print-brand">
+              <Image
+                src="/davids-temple-logo-color.png"
+                alt="David's Temple Missionary Baptist Church"
+                width={180}
+                height={90}
+                className="admin-directory-print-logo"
+              />
+              <div className="admin-directory-print-meta">
+                <span>{filteredMembers.length} member{filteredMembers.length === 1 ? "" : "s"}</span>
+                <span>{new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date())}</span>
+              </div>
             </div>
           </div>
           <CardHeader className="admin-no-print border-b border-[var(--brand-border)]">

@@ -45,6 +45,8 @@ a {
 }
 
 .admin-directory-print-header,
+.admin-directory-print-brand,
+.admin-directory-print-logo,
 .admin-directory-print-details,
 .admin-directory-print-email {
   display: none;
@@ -85,7 +87,7 @@ a {
   .admin-directory-print-header {
     display: grid !important;
     grid-template-columns: 1fr auto !important;
-    gap: 8px 18px !important;
+    gap: 6px 18px !important;
     margin-bottom: 10px !important;
     padding-bottom: 8px !important;
     border-bottom: 2px solid var(--brand-navy) !important;
@@ -128,6 +130,21 @@ a {
     font-weight: 700 !important;
     line-height: 1.2 !important;
     color: var(--brand-navy) !important;
+  }
+
+  .admin-directory-print-brand {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    justify-content: end !important;
+    gap: 4px !important;
+  }
+
+  .admin-directory-print-logo {
+    display: block !important;
+    width: 112px !important;
+    height: auto !important;
+    object-fit: contain !important;
   }
 
   .admin-directory-list {

@@ -3,7 +3,7 @@ import { MemberDirectoryDashboard } from "@/components/admin/member-directory-da
 export default function AdminPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-8 max-w-3xl space-y-3">
+      <div className="admin-no-print mb-8 max-w-3xl space-y-3">
         <p className="text-sm font-medium uppercase tracking-[0.22em] text-[var(--brand-burgundy)]">
           Admin
         </p>
