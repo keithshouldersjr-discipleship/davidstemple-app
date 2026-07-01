@@ -226,7 +226,7 @@ a {
   .shepherding-print-deacon-grid {
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 6px !important;
+    gap: 5px !important;
   }
 
   .shepherding-print-deacon-card {
@@ -234,12 +234,12 @@ a {
     break-inside: avoid !important;
     border: 1px solid var(--brand-border) !important;
     border-radius: 8px !important;
-    padding: 8px !important;
+    padding: 6px 7px !important;
     background: #ffffff !important;
   }
 
   .shepherding-print-deacon-card-header {
-    padding-bottom: 4px !important;
+    padding-bottom: 3px !important;
     border-bottom: 1px solid var(--brand-border) !important;
   }
 
@@ -262,13 +262,13 @@ a {
   .shepherding-print-deacon-card-body {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 6px !important;
-    padding-top: 5px !important;
+    gap: 5px !important;
+    padding-top: 4px !important;
   }
 
   .shepherding-print-mini-label {
-    margin: 0 0 3px !important;
-    font-size: 9px !important;
+    margin: 0 0 2px !important;
+    font-size: 10px !important;
     font-weight: 700 !important;
     line-height: 1.1 !important;
     text-transform: uppercase !important;
@@ -278,14 +278,14 @@ a {
 
   .shepherding-print-deacon-card ul {
     margin: 0 !important;
-    padding-left: 12px !important;
+    padding-left: 11px !important;
   }
 
   .shepherding-print-deacon-card li,
   .shepherding-print-empty {
     margin: 0 !important;
-    font-size: 10px !important;
-    line-height: 1.25 !important;
+    font-size: 11px !important;
+    line-height: 1.18 !important;
     color: var(--brand-text) !important;
   }
 
