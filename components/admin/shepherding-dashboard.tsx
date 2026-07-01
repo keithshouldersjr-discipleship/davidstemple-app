@@ -495,6 +495,10 @@ export function ShepherdingDashboard() {
   const selectedPrayerMemberLogs = selectedPrayerMember
     ? contactLogsByMember.get(selectedPrayerMember.id) ?? []
     : [];
+  const prayerListMembersById = useMemo(
+    () => new Map(prayerListMembers.map((member) => [member.id, member])),
+    [prayerListMembers],
+  );
 
   const overviewDetail = useMemo(() => {
     if (!overviewDetailKey) return null;
@@ -841,6 +845,60 @@ export function ShepherdingDashboard() {
               ) : (
                 <p className="mt-3 text-sm text-[var(--brand-muted)]">No members are currently on the prayer list.</p>
               )}
+            </div>
+          </div>
+          <div className="shepherding-print-deacon-care">
+            <div className="shepherding-print-section-title">
+              <p>Deacon Care Snapshot</p>
+              <span>Assigned members, households, birthdays, and prayer list attention</span>
+            </div>
+            <div className="shepherding-print-deacon-grid">
+              {deaconGroups.map(([group, groupMembers]) => {
+                const groupBirthdays = groupMembers.filter(isBirthdayThisMonth);
+                const groupPrayerList = groupMembers.filter((member) => prayerListMembersById.has(member.id));
+                const groupHouseholds = countHouseholds(groupMembers);
+
+                return (
+                  <div key={group} className="shepherding-print-deacon-card">
+                    <div className="shepherding-print-deacon-card-header">
+                      <p>{group}</p>
+                      <span>
+                        {groupMembers.length} members · {groupHouseholds} households
+                      </span>
+                    </div>
+                    <div className="shepherding-print-deacon-card-body">
+                      <div>
+                        <p className="shepherding-print-mini-label">Birthdays</p>
+                        {groupBirthdays.length ? (
+                          <ul>
+                            {groupBirthdays.map((member) => (
+                              <li key={member.id}>
+                                {getMemberName(member)} ({member.birthdayMonthDay})
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="shepherding-print-empty">None this month</p>
+                        )}
+                      </div>
+                      <div>
+                        <p className="shepherding-print-mini-label">Prayer List</p>
+                        {groupPrayerList.length ? (
+                          <ul>
+                            {groupPrayerList.map((member) => (
+                              <li key={member.id}>
+                                {getMemberName(member)} - {careStatusLabels[member.careStatus ?? "none"]}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="shepherding-print-empty">No current entries</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
