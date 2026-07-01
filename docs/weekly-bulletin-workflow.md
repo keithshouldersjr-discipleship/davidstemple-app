@@ -48,12 +48,14 @@ are editable:
 The Upcoming Events panel is manually curated so the weekly bulletin can
 emphasize the most important dates.
 
+The date range at the top of the public bulletin updates automatically each
+week using a Sunday-through-Saturday Central Time range.
+
 ## Manual JSON Steps
 
 1. Open `content/bulletin.current.json`.
 2. Replace the week-specific values:
    - `slug`
-   - `dateRange`
    - `pastor.note`
    - `focus.title`
    - `focus.reference` for the scripture reference
