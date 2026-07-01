@@ -116,7 +116,7 @@ export function WeeklyBulletin({ bulletin }: { bulletin: WeeklyBulletin }) {
             <h1 className="text-3xl font-black uppercase leading-tight text-[var(--brand-navy)] sm:text-4xl lg:text-5xl">
               David&apos;s Temple{" "}
               <span className="block text-[var(--brand-burgundy)] sm:inline">
-                Weekly Update
+                Bulletin
               </span>
             </h1>
             <p className="mt-3 text-sm font-black uppercase tracking-wide text-[var(--brand-navy)] sm:text-base">
