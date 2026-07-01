@@ -4,9 +4,22 @@
 alter table public.member_profiles
 add column if not exists external_id text;
 
+alter table public.member_profiles
+add column if not exists household_leader_id uuid references public.member_profiles(id) on delete set null;
+
+alter table public.member_profiles
+drop constraint if exists member_profiles_household_leader_not_self;
+
+alter table public.member_profiles
+add constraint member_profiles_household_leader_not_self
+check (household_leader_id is null or household_leader_id <> id);
+
 create unique index if not exists member_profiles_external_id_key
 on public.member_profiles (external_id)
 where external_id is not null;
+
+create index if not exists member_profiles_household_leader_id_idx
+on public.member_profiles (household_leader_id);
 
 insert into public.member_profiles (
   external_id,

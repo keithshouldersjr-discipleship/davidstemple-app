@@ -1,2 +1,2 @@
-external_id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,status,notes
-jane-member-04-12,Jane,Member,04-12,256-555-0100,jane@example.com,John Member,"Child One, Child Two","Choir, Usher Ministry",Deacon Smith,active,
+external_id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,household_leader_id,status,notes
+jane-member-04-12,Jane,Member,04-12,256-555-0100,jane@example.com,John Member,"Child One, Child Two","Choir, Usher Ministry",Deacon Smith,,active,

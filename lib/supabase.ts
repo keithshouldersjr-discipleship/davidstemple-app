@@ -62,6 +62,7 @@ export type SupabaseMemberProfileRow = {
   children: string[] | null;
   ministry_interests: string[] | null;
   deacon_group: string | null;
+  household_leader_id: string | null;
   status: "active" | "inactive" | "deceased";
   notes: string | null;
 };

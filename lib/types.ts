@@ -76,6 +76,7 @@ export type MemberProfile = {
   children: string[];
   ministryInterests: string[];
   deaconGroup?: string;
+  householdLeaderId?: string;
   status: MemberStatus;
   notes?: string;
 };

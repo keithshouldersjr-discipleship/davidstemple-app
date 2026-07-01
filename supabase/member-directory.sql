@@ -28,6 +28,7 @@ create table if not exists public.member_profiles (
   children text[] not null default '{}',
   ministry_interests text[] not null default '{}',
   deacon_group text,
+  household_leader_id uuid references public.member_profiles(id) on delete set null,
   status text not null default 'active' check (status in ('active', 'inactive', 'deceased')),
   notes text,
   created_at timestamptz not null default now(),
@@ -37,9 +38,22 @@ create table if not exists public.member_profiles (
 alter table public.member_profiles
 add column if not exists external_id text;
 
+alter table public.member_profiles
+add column if not exists household_leader_id uuid references public.member_profiles(id) on delete set null;
+
+alter table public.member_profiles
+drop constraint if exists member_profiles_household_leader_not_self;
+
+alter table public.member_profiles
+add constraint member_profiles_household_leader_not_self
+check (household_leader_id is null or household_leader_id <> id);
+
 create unique index if not exists member_profiles_external_id_key
 on public.member_profiles (external_id)
 where external_id is not null;
+
+create index if not exists member_profiles_household_leader_id_idx
+on public.member_profiles (household_leader_id);
 
 alter table public.admin_users enable row level security;
 alter table public.member_profiles enable row level security;
@@ -140,7 +154,7 @@ with check (
 -- on conflict (email) do update set role = excluded.role;
 
 -- Google Sheets / CSV import column pattern:
--- external_id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,status,notes
+-- external_id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,household_leader_id,status,notes
 --
 -- Use MM-DD for birthday_month_day so the directory never stores birth years.
 -- Use comma-separated text for children and ministry_interests before converting to text[].
