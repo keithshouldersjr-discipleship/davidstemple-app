@@ -856,15 +856,13 @@ export function ShepherdingDashboard() {
               {deaconGroups.map(([group, groupMembers]) => {
                 const groupBirthdays = groupMembers.filter(isBirthdayThisMonth);
                 const groupPrayerList = groupMembers.filter((member) => prayerListMembersById.has(member.id));
-                const groupHouseholds = countHouseholds(groupMembers);
 
                 return (
                   <div key={group} className="shepherding-print-deacon-card">
                     <div className="shepherding-print-deacon-card-header">
-                      <p>{group}</p>
-                      <span>
-                        {groupMembers.length} members · {groupHouseholds} households
-                      </span>
+                      <p>
+                        {group} - {groupMembers.length} member{groupMembers.length === 1 ? "" : "s"}
+                      </p>
                     </div>
                     <div className="shepherding-print-deacon-card-body">
                       <div>
@@ -872,9 +870,7 @@ export function ShepherdingDashboard() {
                         {groupBirthdays.length ? (
                           <ul>
                             {groupBirthdays.map((member) => (
-                              <li key={member.id}>
-                                {getMemberName(member)} ({member.birthdayMonthDay})
-                              </li>
+                              <li key={member.id}>{getMemberName(member)}</li>
                             ))}
                           </ul>
                         ) : (
@@ -886,9 +882,7 @@ export function ShepherdingDashboard() {
                         {groupPrayerList.length ? (
                           <ul>
                             {groupPrayerList.map((member) => (
-                              <li key={member.id}>
-                                {getMemberName(member)} - {careStatusLabels[member.careStatus ?? "none"]}
-                              </li>
+                              <li key={member.id}>{getMemberName(member)}</li>
                             ))}
                           </ul>
                         ) : (
