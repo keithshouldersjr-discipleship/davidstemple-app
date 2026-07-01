@@ -41,8 +41,15 @@ a {
 }
 
 @media print {
+  @page {
+    size: letter;
+    margin: 0.35in;
+  }
+
   body {
     background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   header,
@@ -70,33 +77,56 @@ a {
   .shepherding-overview-print {
     display: block !important;
     color: #0f172a !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
   }
 
   .shepherding-print-header {
     display: flex !important;
     align-items: center !important;
-    gap: 18px !important;
-    margin-bottom: 18px !important;
-    padding-bottom: 14px !important;
+    gap: 12px !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 8px !important;
     border-bottom: 2px solid var(--brand-navy) !important;
     break-after: avoid !important;
   }
 
   .shepherding-print-logo {
-    width: 132px !important;
+    display: block !important;
+    width: 96px !important;
     height: auto !important;
     object-fit: contain !important;
+  }
+
+  .shepherding-print-header h2 {
+    font-size: 20px !important;
+    line-height: 1.1 !important;
+    margin-top: 2px !important;
+  }
+
+  .shepherding-print-header p {
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    margin-top: 2px !important;
   }
 
   .shepherding-overview-print button,
   .shepherding-overview-print > div,
   .shepherding-overview-print .rounded-2xl {
-    break-inside: avoid !important;
     box-shadow: none !important;
   }
 
+  .shepherding-overview-print > .grid:first-of-type,
+  .shepherding-overview-print > .grid:first-of-type button {
+    break-inside: avoid !important;
+  }
+
   .shepherding-overview-print .grid {
-    gap: 10px !important;
+    gap: 8px !important;
+  }
+
+  .shepherding-overview-print.space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 10px !important;
   }
 
   .shepherding-overview-print .xl\:grid-cols-4,
@@ -106,5 +136,57 @@ a {
 
   .shepherding-overview-print .lg\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .shepherding-overview-print button {
+    min-height: 0 !important;
+    padding: 8px 10px !important;
+    border-radius: 10px !important;
+  }
+
+  .shepherding-overview-print button > div {
+    display: none !important;
+  }
+
+  .shepherding-overview-print button p:first-of-type {
+    font-size: 24px !important;
+    line-height: 1 !important;
+  }
+
+  .shepherding-overview-print button p:last-of-type {
+    margin-top: 4px !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+  }
+
+  .shepherding-overview-print .rounded-2xl {
+    border-radius: 10px !important;
+  }
+
+  .shepherding-overview-print .p-4 {
+    padding: 10px !important;
+  }
+
+  .shepherding-overview-print .mt-3 {
+    margin-top: 6px !important;
+  }
+
+  .shepherding-overview-print .mt-1 {
+    margin-top: 2px !important;
+  }
+
+  .shepherding-overview-print .py-2 {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .shepherding-overview-print .text-sm {
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+  }
+
+  .shepherding-overview-print .font-semibold {
+    font-size: 13px !important;
+    line-height: 1.2 !important;
   }
 }
