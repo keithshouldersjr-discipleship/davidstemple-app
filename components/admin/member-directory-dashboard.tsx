@@ -10,6 +10,7 @@ import {
   Phone,
   Plus,
   Search,
+  Settings,
   ShieldCheck,
   SquarePen,
   Users,
@@ -233,6 +234,8 @@ export function MemberDirectoryDashboard() {
   const [profileModalMode, setProfileModalMode] = useState<ProfileModalMode>("view");
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [bulkUpdate, setBulkUpdate] = useState<BulkUpdateState>(emptyBulkUpdate);
+  const [isBulkEditMode, setIsBulkEditMode] = useState(false);
+  const [isDirectoryMenuOpen, setIsDirectoryMenuOpen] = useState(false);
 
   const canManageAll = directoryRole === "owner" || directoryRole === "admin";
   const isCommunicationManager = communicationsManagerEmails.includes(currentUserEmail);
@@ -419,6 +422,8 @@ export function MemberDirectoryDashboard() {
     setMembers([]);
     setSelectedMemberIds([]);
     setBulkUpdate(emptyBulkUpdate);
+    setIsBulkEditMode(false);
+    setIsDirectoryMenuOpen(false);
   }
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
@@ -462,6 +467,25 @@ export function MemberDirectoryDashboard() {
     }
 
     setIsSaving(false);
+  }
+
+  function resetDirectoryFilters() {
+    setSearch("");
+    setStatus("all");
+    setDeaconGroup("all");
+  }
+
+  function enterBulkEditMode() {
+    setIsBulkEditMode(true);
+    setIsDirectoryMenuOpen(false);
+    setForm(emptyForm);
+  }
+
+  function exitBulkEditMode() {
+    setIsBulkEditMode(false);
+    setIsDirectoryMenuOpen(false);
+    setSelectedMemberIds([]);
+    setBulkUpdate(emptyBulkUpdate);
   }
 
   function toggleMemberSelection(memberId: string) {
@@ -642,6 +666,9 @@ export function MemberDirectoryDashboard() {
             onClick={() => {
               const nextTab = tab as AdminTab;
               setActiveTab(nextTab);
+              if (nextTab !== "directory") {
+                exitBulkEditMode();
+              }
               window.history.replaceState(
                 null,
                 "",
@@ -665,31 +692,6 @@ export function MemberDirectoryDashboard() {
 
       {activeTab === "directory" ? (
       <>
-      <div className="admin-no-print flex flex-col gap-3 rounded-3xl border border-[var(--brand-border)] bg-white p-4 shadow-sm shadow-slate-900/5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="font-semibold text-[var(--brand-navy)]">Church directory</p>
-          <p className="text-sm text-[var(--brand-muted)]">
-            {filteredMembers.length} visible members from {members.length} total
-            {directoryRole !== "none" ? ` · ${directoryRole} access` : ""}
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button type="button" variant="secondary" onClick={() => window.print()}>
-            <Download className="h-4 w-4" />
-            Print / PDF
-          </Button>
-          {canManageAll ? (
-            <Button type="button" onClick={() => setForm(emptyForm)}>
-              <Plus className="h-4 w-4" />
-              New member
-            </Button>
-          ) : null}
-          <Button type="button" variant="ghost" onClick={handleSignOut}>
-            Sign out
-          </Button>
-        </div>
-      </div>
-
       {message ? (
         <div className="rounded-2xl border border-[var(--brand-burgundy)]/20 bg-[var(--brand-burgundy-soft)] p-4 text-sm text-[var(--brand-burgundy)]">
           {message}
@@ -697,209 +699,243 @@ export function MemberDirectoryDashboard() {
       ) : null}
 
       {canViewFullDirectory ? (
-        <div className="admin-no-print">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <CardTitle>Filters</CardTitle>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setSearch("");
-                      setStatus("all");
-                      setDeaconGroup("all");
-                    }}
-                  >
-                    Reset
-                  </Button>
-                  <Button type="button" variant="secondary" size="sm" onClick={() => window.print()}>
-                    <Download className="h-4 w-4" />
-                    Print filtered
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="grid gap-3 lg:grid-cols-[1.4fr_0.8fr_0.8fr]">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--brand-muted)]" />
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search names, phone, email, ministries..." className="pl-10" />
-              </div>
-              <select value={status} onChange={(e) => setStatus(e.target.value as MemberStatus | "all")} className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]">
-                <option value="all">All statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="deceased">Deceased</option>
-              </select>
-              <select value={deaconGroup} onChange={(e) => setDeaconGroup(e.target.value)} className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]">
-                <option value="all">All deacon groups</option>
-                {deaconGroupOptions.map((group) => (
-                  <option key={group} value={group}>
-                    {group}
-                  </option>
-                ))}
-              </select>
-            </CardContent>
-          </Card>
-        </div>
-      ) : null}
-
-      {canManageAll && canViewFullDirectory ? (
-        <div className="admin-no-print">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Card className="admin-directory-print overflow-visible">
+          <CardHeader className="admin-no-print border-b border-[var(--brand-border)]">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <CardTitle>Bulk updates</CardTitle>
+                  <CardTitle>Church directory</CardTitle>
                   <p className="mt-1 text-sm text-[var(--brand-muted)]">
-                    {selectedMemberIds.length} selected
-                    {selectedMemberIds.length ? ` · ${selectedMembers.map(getMemberName).slice(0, 3).join(", ")}${selectedMembers.length > 3 ? "..." : ""}` : ""}
+                    {filteredMembers.length} of {members.length} members
+                    {` · ${directoryRole} access`}
+                    {isBulkEditMode ? ` · ${selectedMemberIds.length} selected` : ""}
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button type="button" variant="secondary" size="sm" onClick={toggleVisibleSelection}>
-                    {allVisibleSelected ? "Clear visible" : "Select visible"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setSelectedMemberIds([])}
-                    disabled={!selectedMemberIds.length}
-                  >
-                    Clear selected
-                  </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {isBulkEditMode ? (
+                    <>
+                      <Button type="button" variant="secondary" size="sm" onClick={toggleVisibleSelection}>
+                        {allVisibleSelected ? "Clear visible" : "Select visible"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setSelectedMemberIds([])}
+                        disabled={!selectedMemberIds.length}
+                      >
+                        Clear selected
+                      </Button>
+                      <Button type="button" variant="ghost" size="sm" onClick={exitBulkEditMode}>
+                        Done
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button type="button" variant="secondary" size="sm" onClick={() => window.print()}>
+                        <Download className="h-4 w-4" />
+                        Print
+                      </Button>
+                      {canManageAll ? (
+                        <Button type="button" size="sm" onClick={() => setForm(emptyForm)}>
+                          <Plus className="h-4 w-4" />
+                          New member
+                        </Button>
+                      ) : null}
+                    </>
+                  )}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--brand-border)] text-[var(--brand-navy)] transition hover:bg-[var(--brand-soft)]"
+                      aria-label="Directory settings"
+                      aria-expanded={isDirectoryMenuOpen}
+                      onClick={() => setIsDirectoryMenuOpen((isOpen) => !isOpen)}
+                    >
+                      <Settings className="h-4 w-4" />
+                    </button>
+                    {isDirectoryMenuOpen ? (
+                      <div className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-2xl border border-[var(--brand-border)] bg-white py-2 shadow-xl shadow-slate-900/12">
+                        {canManageAll ? (
+                          <button
+                            type="button"
+                            className="block w-full px-4 py-2 text-left text-sm font-medium text-[var(--brand-navy)] hover:bg-[var(--brand-soft)]"
+                            onClick={enterBulkEditMode}
+                          >
+                            Bulk edit
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          className="block w-full px-4 py-2 text-left text-sm font-medium text-[var(--brand-navy)] hover:bg-[var(--brand-soft)]"
+                          onClick={() => {
+                            resetDirectoryFilters();
+                            setIsDirectoryMenuOpen(false);
+                          }}
+                        >
+                          Reset filters
+                        </button>
+                        <button
+                          type="button"
+                          className="block w-full px-4 py-2 text-left text-sm font-medium text-[var(--brand-navy)] hover:bg-[var(--brand-soft)]"
+                          onClick={() => {
+                            setIsDirectoryMenuOpen(false);
+                            void handleSignOut();
+                          }}
+                        >
+                          Sign out
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleBulkUpdate} className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_auto]">
+              <div className="grid gap-3 lg:grid-cols-[minmax(16rem,1.5fr)_minmax(10rem,0.75fr)_minmax(13rem,0.9fr)]">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--brand-muted)]" />
+                  <Input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search names, phone, email, ministries..."
+                    className="pl-10"
+                  />
+                </div>
                 <select
-                  value={bulkUpdate.deaconGroup}
-                  onChange={(event) => setBulkUpdate({ ...bulkUpdate, deaconGroup: event.target.value })}
-                  className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as MemberStatus | "all")}
+                  className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]"
                 >
-                  <option value="">Leave deacon group unchanged</option>
-                  <option value="__clear__">Clear deacon group</option>
+                  <option value="all">All statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="deceased">Deceased</option>
+                </select>
+                <select
+                  value={deaconGroup}
+                  onChange={(e) => setDeaconGroup(e.target.value)}
+                  className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]"
+                >
+                  <option value="all">All deacon groups</option>
                   {deaconGroupOptions.map((group) => (
                     <option key={group} value={group}>
                       {group}
                     </option>
                   ))}
                 </select>
-                <select
-                  value={bulkUpdate.householdLeaderId}
-                  onChange={(event) => setBulkUpdate({ ...bulkUpdate, householdLeaderId: event.target.value })}
-                  className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
+              </div>
+              {isBulkEditMode ? (
+                <form
+                  onSubmit={handleBulkUpdate}
+                  className="grid gap-3 rounded-2xl border border-[var(--brand-border)] bg-[var(--brand-soft)] p-3 lg:grid-cols-[1fr_1fr_1fr_auto]"
                 >
-                  <option value="">Leave household unchanged</option>
-                  <option value="__clear__">Remove from household</option>
-                  {memberOptions.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {getMemberName(member)}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={bulkUpdate.status}
-                  onChange={(event) => setBulkUpdate({ ...bulkUpdate, status: event.target.value as MemberStatus | "" })}
-                  className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
-                >
-                  <option value="">Leave status unchanged</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="deceased">Deceased</option>
-                </select>
-                <Button type="submit" disabled={isSaving || !selectedMemberIds.length}>
-                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Users className="h-4 w-4" />}
-                  Apply
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+                  <select
+                    value={bulkUpdate.deaconGroup}
+                    onChange={(event) => setBulkUpdate({ ...bulkUpdate, deaconGroup: event.target.value })}
+                    className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
+                  >
+                    <option value="">Leave deacon group unchanged</option>
+                    <option value="__clear__">Clear deacon group</option>
+                    {deaconGroupOptions.map((group) => (
+                      <option key={group} value={group}>
+                        {group}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={bulkUpdate.householdLeaderId}
+                    onChange={(event) => setBulkUpdate({ ...bulkUpdate, householdLeaderId: event.target.value })}
+                    className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
+                  >
+                    <option value="">Leave household unchanged</option>
+                    <option value="__clear__">Remove from household</option>
+                    {memberOptions.map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {getMemberName(member)}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={bulkUpdate.status}
+                    onChange={(event) => setBulkUpdate({ ...bulkUpdate, status: event.target.value as MemberStatus | "" })}
+                    className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
+                  >
+                    <option value="">Leave status unchanged</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="deceased">Deceased</option>
+                  </select>
+                  <Button type="submit" disabled={isSaving || !selectedMemberIds.length}>
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Users className="h-4 w-4" />}
+                    Apply
+                  </Button>
+                </form>
+              ) : null}
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {isLoading ? (
+              <p className="p-5 text-sm text-[var(--brand-muted)]">Loading directory...</p>
+            ) : filteredMembers.length ? (
+              <div className={cn("admin-directory-list overflow-y-auto", isBulkEditMode ? "max-h-[48rem]" : "max-h-[34rem]")}>
+                {filteredMembers.map((member) => {
+                  const householdLeader = member.householdLeaderId
+                    ? membersById.get(member.householdLeaderId)
+                    : undefined;
+
+                  return (
+                    <div
+                      key={member.id}
+                      className={cn(
+                        "grid items-center gap-3 border-b border-[var(--brand-border)] px-4 py-3 transition hover:bg-[var(--brand-soft)]",
+                        isBulkEditMode ? "grid-cols-[auto_1fr]" : "grid-cols-1",
+                        selectedMember?.id === member.id && "bg-[var(--brand-burgundy-soft)]",
+                      )}
+                    >
+                      {isBulkEditMode ? (
+                        <input
+                          type="checkbox"
+                          checked={selectedMemberIds.includes(member.id)}
+                          onChange={() => toggleMemberSelection(member.id)}
+                          aria-label={`Select ${getMemberName(member)}`}
+                          className="h-4 w-4 rounded border-[var(--brand-border)] text-[var(--brand-burgundy)]"
+                        />
+                      ) : null}
+                      <button
+                        type="button"
+                        className="grid w-full grid-cols-1 gap-2 text-left sm:grid-cols-[1fr_auto]"
+                        onClick={() => openProfileModal(member.id)}
+                      >
+                        <span>
+                          <span className="block font-semibold text-[var(--brand-navy)]">
+                            {member.firstName} {member.lastName}
+                          </span>
+                          <span className="mt-1 block text-xs text-[var(--brand-muted)]">
+                            {member.deaconGroup ?? "No deacon group listed"}
+                            {householdLeader ? ` · Household: ${getMemberName(householdLeader)}` : ""}
+                          </span>
+                        </span>
+                        <span className="flex items-center gap-2 text-sm font-medium text-[var(--brand-muted)] sm:justify-end">
+                          <Phone className="h-4 w-4 text-[var(--brand-burgundy)]" />
+                          {formatPhoneNumber(member.phone) || "No phone"}
+                        </span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-6">
+                <p className="font-semibold text-[var(--brand-navy)]">No members match these filters.</p>
+                <p className="mt-2 text-sm text-[var(--brand-muted)]">
+                  Reset the filters or search for a different name, group, or ministry interest.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       ) : null}
 
-      <div className="admin-directory-print">
-        {isLoading ? (
-          <p className="text-sm text-[var(--brand-muted)]">Loading directory...</p>
-        ) : filteredMembers.length ? (
-          <>
-            {canViewFullDirectory ? (
-              <Card className="overflow-hidden">
-                <CardHeader className="border-b border-[var(--brand-border)]">
-                  <CardTitle>Member list</CardTitle>
-                  <p className="text-sm text-[var(--brand-muted)]">
-                    Select a name or phone number to view the full profile.
-                  </p>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="admin-directory-list max-h-[34rem] overflow-y-auto">
-                    {filteredMembers.map((member) => {
-                      const householdLeader = member.householdLeaderId
-                        ? membersById.get(member.householdLeaderId)
-                        : undefined;
-
-                      return (
-                        <div
-                          key={member.id}
-                          className={cn(
-                            "grid items-center gap-3 border-b border-[var(--brand-border)] px-4 py-3 transition hover:bg-[var(--brand-soft)]",
-                            canManageAll ? "grid-cols-[auto_1fr]" : "grid-cols-1",
-                            selectedMember?.id === member.id && "bg-[var(--brand-burgundy-soft)]",
-                          )}
-                        >
-                          {canManageAll ? (
-                            <input
-                              type="checkbox"
-                              checked={selectedMemberIds.includes(member.id)}
-                              onChange={() => toggleMemberSelection(member.id)}
-                              aria-label={`Select ${getMemberName(member)}`}
-                              className="h-4 w-4 rounded border-[var(--brand-border)] text-[var(--brand-burgundy)]"
-                            />
-                          ) : null}
-                          <button
-                            type="button"
-                            className="grid w-full grid-cols-[1fr_auto] gap-3 text-left"
-                            onClick={() => openProfileModal(member.id)}
-                          >
-                            <span>
-                              <span className="block font-semibold text-[var(--brand-navy)]">
-                                {member.firstName} {member.lastName}
-                              </span>
-                              <span className="mt-1 block text-xs text-[var(--brand-muted)]">
-                                {member.deaconGroup ?? "No deacon group listed"}
-                                {householdLeader ? ` · Household: ${getMemberName(householdLeader)}` : ""}
-                              </span>
-                            </span>
-                            <span className="flex items-center gap-2 text-sm font-medium text-[var(--brand-muted)]">
-                              <Phone className="h-4 w-4 text-[var(--brand-burgundy)]" />
-                              {formatPhoneNumber(member.phone) || "No phone"}
-                            </span>
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            ) : null}
-          </>
-        ) : (
-          <Card className="md:col-span-2 xl:col-span-3">
-            <CardContent className="p-6">
-              <p className="font-semibold text-[var(--brand-navy)]">No members match these filters.</p>
-              <p className="mt-2 text-sm text-[var(--brand-muted)]">
-                Reset the filters or search for a different name, group, or ministry interest.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {canManageAll || form.id ? (
+      {!isBulkEditMode && (canManageAll || form.id) ? (
         <div id="member-form" className="admin-no-print">
           <Card>
             <CardHeader>
