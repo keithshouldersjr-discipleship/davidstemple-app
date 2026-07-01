@@ -93,6 +93,9 @@ export function WeeklyBulletin({ bulletin }: { bulletin: WeeklyBulletin }) {
     bulletin.ministrySpotlight.image === "/church-life/community-service.png"
       ? "/church-life/social-media-spotlight.png"
       : bulletin.ministrySpotlight.image;
+  const scriptureReference = bulletin.focus.reference?.trim();
+  const scriptureExcerpt = bulletin.focus.excerpt?.trim() || bulletin.focus.body;
+  const scripturePassageUrl = bulletin.focus.passageUrl?.trim();
 
   return (
     <main className="bg-slate-200 py-4 sm:py-8">
@@ -167,9 +170,25 @@ export function WeeklyBulletin({ bulletin }: { bulletin: WeeklyBulletin }) {
                   <div className="mt-3 h-1 w-32 bg-[var(--brand-burgundy)]" />
                 </div>
               </div>
-              <p className="mt-6 whitespace-pre-line border-l-4 border-white/35 pl-5 text-lg font-semibold leading-8">
-                {bulletin.focus.body}
-              </p>
+              <div className="mt-6 border-l-4 border-white/35 pl-5">
+                {scriptureReference ? (
+                  <p className="text-xl font-black text-white">
+                    {scriptureReference}
+                  </p>
+                ) : null}
+                <p className="mt-3 whitespace-pre-line text-lg font-semibold leading-8">
+                  {scriptureExcerpt}
+                </p>
+                {scripturePassageUrl ? (
+                  <Link
+                    href={scripturePassageUrl}
+                    className="mt-5 inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-black uppercase !text-[var(--brand-navy)] transition hover:bg-white/90"
+                  >
+                    Read Full Passage
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                ) : null}
+              </div>
             </aside>
           </section>
 

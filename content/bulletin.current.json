@@ -12,7 +12,10 @@
   },
   "focus": {
     "title": "This Sunday's Scripture",
-    "body": "Paste this Sunday's scripture passage here.\n\nLine breaks will be preserved on the bulletin."
+    "reference": "John 3:16-17 (KJV)",
+    "excerpt": "For God so loved the world, that he gave his only begotten Son...",
+    "passageUrl": "https://www.biblegateway.com/passage/?search=John%203%3A16-17&version=KJV",
+    "body": "For God so loved the world, that he gave his only begotten Son..."
   },
   "weeklySchedule": [
     { "label": "Sunday School", "time": "8:30 AM", "icon": "users" },

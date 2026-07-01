@@ -352,17 +352,33 @@ export function BulletinAdminPanel({
                       required
                     />
                   </Field>
-                  <Field label="Scripture passage">
+                  <Field label="Scripture reference">
+                    <Input
+                      value={form.focus.reference ?? ""}
+                      onChange={(event) => updateNested("focus", "reference", event.target.value)}
+                      placeholder="John 3:16-17 (KJV)"
+                    />
+                  </Field>
+                  <Field label="Key verse / preview">
                     <Textarea
-                      value={form.focus.body}
-                      onChange={(value) => updateNested("focus", "body", value)}
-                      rows={9}
-                      placeholder={"John 3:16-17 (KJV)\n\nFor God so loved the world..."}
+                      value={form.focus.excerpt ?? form.focus.body}
+                      onChange={(value) => {
+                        updateNested("focus", "excerpt", value);
+                        updateNested("focus", "body", value);
+                      }}
+                      rows={5}
+                      placeholder="Paste the key verse or short excerpt you want people to see on the bulletin."
                     />
                     <p className="text-xs leading-5 text-[var(--brand-muted)]">
-                      Paste the passage exactly as you want it displayed. Line
-                      breaks will be preserved on the bulletin.
+                      Keep this short for readability. Line breaks will be preserved.
                     </p>
+                  </Field>
+                  <Field label="Full passage link">
+                    <Input
+                      value={form.focus.passageUrl ?? ""}
+                      onChange={(event) => updateNested("focus", "passageUrl", event.target.value)}
+                      placeholder="https://www.biblegateway.com/passage/?search=John+3%3A16-17&version=KJV"
+                    />
                   </Field>
                   <Field label="Sunday invite title">
                     <Input

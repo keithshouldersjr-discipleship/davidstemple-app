@@ -66,6 +66,9 @@ export type WeeklyBulletin = {
   };
   focus: {
     title: string;
+    reference?: string;
+    excerpt?: string;
+    passageUrl?: string;
     body: string;
   };
   weeklySchedule: BulletinScheduleItem[];

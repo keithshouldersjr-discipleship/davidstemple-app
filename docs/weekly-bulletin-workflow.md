@@ -60,7 +60,9 @@ The admin form maps to the same sections shown on the bulletin:
    - `dateRange`
    - `pastor.note`
    - `focus.title`
-   - `focus.body` for the scripture passage
+   - `focus.reference` for the scripture reference
+   - `focus.excerpt` for the short key verse or preview
+   - `focus.passageUrl` for the full passage link
    - `weeklySchedule`
    - `importantLinks`
    - `sundayInvite`
