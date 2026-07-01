@@ -14,6 +14,7 @@ import {
   Printer,
   ShieldCheck,
   Users,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,13 @@ import type { MemberProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type ShepherdingTab = "overview" | "deacons" | "health" | "meeting";
+type OverviewDetailKey = "active" | "households" | "withoutDeacon" | "birthdays";
+
+type HouseholdGroup = {
+  id: string;
+  leader: MemberProfile;
+  members: MemberProfile[];
+};
 
 const shepherdingDashboardEmails = (
   process.env.NEXT_PUBLIC_SHEPHERDING_DASHBOARD_EMAILS ?? "keithshouldersjr@gmail.com"
@@ -105,11 +113,13 @@ function MetricCard({
   label,
   value,
   tone = "navy",
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string | number;
   tone?: "navy" | "burgundy" | "amber" | "green";
+  onClick?: () => void;
 }) {
   const toneClass = {
     navy: "bg-[var(--brand-navy)]/8 text-[var(--brand-navy)]",
@@ -118,13 +128,31 @@ function MetricCard({
     green: "bg-emerald-50 text-emerald-700",
   }[tone];
 
-  return (
-    <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
+  const content = (
+    <>
       <div className={cn("mb-4 flex h-10 w-10 items-center justify-center rounded-full", toneClass)}>
         {icon}
       </div>
       <p className="text-3xl font-semibold text-[var(--brand-navy)]">{value}</p>
       <p className="mt-1 text-sm text-[var(--brand-muted)]">{label}</p>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        className="rounded-2xl border border-[var(--brand-border)] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-[var(--brand-burgundy)]/35 hover:shadow-lg hover:shadow-slate-900/8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-burgundy)]"
+        onClick={onClick}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
+      {content}
     </div>
   );
 }
@@ -156,6 +184,49 @@ function SimpleList({
   );
 }
 
+function MemberDetailRow({ member }: { member: MemberProfile }) {
+  return (
+    <div className="grid gap-2 border-b border-[var(--brand-border)] px-4 py-3 text-sm last:border-0 sm:grid-cols-[1fr_1fr_1fr]">
+      <div>
+        <p className="font-semibold text-[var(--brand-navy)]">{getMemberName(member)}</p>
+        <p className="text-xs text-[var(--brand-muted)]">{member.status}</p>
+      </div>
+      <p className="text-[var(--brand-text)]">{member.deaconGroup ?? "No deacon group"}</p>
+      <p className="text-[var(--brand-text)]">
+        {formatPhoneNumber(member.phone) || member.email || "No phone/email"}
+        {member.birthdayMonthDay ? ` · Birthday ${member.birthdayMonthDay}` : ""}
+      </p>
+    </div>
+  );
+}
+
+function HouseholdDetailRow({ household }: { household: HouseholdGroup }) {
+  const householdMembers = household.members.filter((member) => member.id !== household.leader.id);
+
+  return (
+    <div className="border-b border-[var(--brand-border)] px-4 py-3 last:border-0">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-semibold text-[var(--brand-navy)]">{getMemberName(household.leader)}</p>
+          <p className="text-xs text-[var(--brand-muted)]">
+            {household.members.length} member{household.members.length === 1 ? "" : "s"} represented
+          </p>
+        </div>
+        <p className="text-sm text-[var(--brand-text)]">
+          {formatPhoneNumber(household.leader.phone) || household.leader.email || "No phone/email"}
+        </p>
+      </div>
+      {householdMembers.length ? (
+        <p className="mt-2 text-sm text-[var(--brand-muted)]">
+          Connected: {householdMembers.map(getMemberName).join(", ")}
+        </p>
+      ) : (
+        <p className="mt-2 text-sm text-[var(--brand-muted)]">Single-member household.</p>
+      )}
+    </div>
+  );
+}
+
 export function ShepherdingDashboard() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [email, setEmail] = useState("");
@@ -168,6 +239,7 @@ export function ShepherdingDashboard() {
   const [members, setMembers] = useState<MemberProfile[]>([]);
   const [activeTab, setActiveTab] = useState<ShepherdingTab>("overview");
   const [meetingFilter, setMeetingFilter] = useState("all");
+  const [overviewDetailKey, setOverviewDetailKey] = useState<OverviewDetailKey | null>(null);
 
   const loadMembers = useCallback(async () => {
     if (!supabase) return;
@@ -242,6 +314,28 @@ export function ShepherdingDashboard() {
     [activeMembers],
   );
 
+  const householdGroups = useMemo(() => {
+    const activeMembersById = new Map(activeMembers.map((member) => [member.id, member]));
+    const groups = new Map<string, MemberProfile[]>();
+
+    for (const member of activeMembers) {
+      const householdId = member.householdLeaderId ?? member.id;
+      groups.set(householdId, [...(groups.get(householdId) ?? []), member]);
+    }
+
+    return Array.from(groups.entries())
+      .map(([householdId, householdMembers]) => {
+        const leader = activeMembersById.get(householdId) ?? householdMembers[0];
+
+        return {
+          id: householdId,
+          leader,
+          members: [leader, ...householdMembers.filter((member) => member.id !== leader.id)],
+        };
+      })
+      .sort((first, second) => getMemberName(first.leader).localeCompare(getMemberName(second.leader)));
+  }, [activeMembers]);
+
   const deaconGroups = useMemo(() => {
     const groups = new Map<string, MemberProfile[]>();
 
@@ -270,6 +364,48 @@ export function ShepherdingDashboard() {
 
     return activeMembers.filter((member) => (member.deaconGroup ?? "Unassigned") === meetingFilter);
   }, [activeMembers, meetingFilter]);
+
+  const overviewDetail = useMemo(() => {
+    if (!overviewDetailKey) return null;
+
+    const details: Record<
+      OverviewDetailKey,
+      {
+        title: string;
+        description: string;
+        members?: MemberProfile[];
+        households?: HouseholdGroup[];
+        emptyText: string;
+      }
+    > = {
+      active: {
+        title: "Active members",
+        description: "All active member profiles currently included in the directory.",
+        members: activeMembers,
+        emptyText: "No active members are currently listed.",
+      },
+      households: {
+        title: "Households represented",
+        description: "Household representatives and the members connected to each household.",
+        households: householdGroups,
+        emptyText: "No household groupings are currently listed.",
+      },
+      withoutDeacon: {
+        title: "Without deacon assignment",
+        description: "Active members who still need to be assigned to a deacon care group.",
+        members: withoutDeacon,
+        emptyText: "Every active member has a deacon assignment.",
+      },
+      birthdays: {
+        title: "Birthdays this month",
+        description: "Active members with birthdays in the current month.",
+        members: birthdaysThisMonth,
+        emptyText: "No active member birthdays are listed for this month.",
+      },
+    };
+
+    return details[overviewDetailKey];
+  }, [activeMembers, birthdaysThisMonth, householdGroups, overviewDetailKey, withoutDeacon]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -405,10 +541,33 @@ export function ShepherdingDashboard() {
       {!isLoading && activeTab === "overview" ? (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard icon={<Users className="h-5 w-5" />} label="Active members" value={activeMembers.length} />
-            <MetricCard icon={<Home className="h-5 w-5" />} label="Households represented" value={countHouseholds(activeMembers)} tone="green" />
-            <MetricCard icon={<AlertCircle className="h-5 w-5" />} label="Without deacon assignment" value={withoutDeacon.length} tone="amber" />
-            <MetricCard icon={<CalendarDays className="h-5 w-5" />} label="Birthdays this month" value={birthdaysThisMonth.length} tone="burgundy" />
+            <MetricCard
+              icon={<Users className="h-5 w-5" />}
+              label="Active members"
+              value={activeMembers.length}
+              onClick={() => setOverviewDetailKey("active")}
+            />
+            <MetricCard
+              icon={<Home className="h-5 w-5" />}
+              label="Households represented"
+              value={householdGroups.length}
+              tone="green"
+              onClick={() => setOverviewDetailKey("households")}
+            />
+            <MetricCard
+              icon={<AlertCircle className="h-5 w-5" />}
+              label="Without deacon assignment"
+              value={withoutDeacon.length}
+              tone="amber"
+              onClick={() => setOverviewDetailKey("withoutDeacon")}
+            />
+            <MetricCard
+              icon={<CalendarDays className="h-5 w-5" />}
+              label="Birthdays this month"
+              value={birthdaysThisMonth.length}
+              tone="burgundy"
+              onClick={() => setOverviewDetailKey("birthdays")}
+            />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <SimpleList
@@ -601,6 +760,49 @@ export function ShepherdingDashboard() {
               </div>
             ))}
           </div>
+        </div>
+      ) : null}
+
+      {overviewDetail ? (
+        <div
+          className="admin-no-print fixed inset-0 z-50 flex items-end justify-center bg-slate-950/55 p-3 sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="overview-detail-title"
+          onClick={() => setOverviewDetailKey(null)}
+        >
+          <Card
+            className="max-h-[88vh] w-full max-w-3xl overflow-hidden"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <CardHeader className="border-b border-[var(--brand-border)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <CardTitle id="overview-detail-title">{overviewDetail.title}</CardTitle>
+                  <p className="mt-1 text-sm text-[var(--brand-muted)]">{overviewDetail.description}</p>
+                </div>
+                <button
+                  type="button"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--brand-border)] text-[var(--brand-muted)] hover:bg-[var(--brand-soft)]"
+                  aria-label="Close details"
+                  onClick={() => setOverviewDetailKey(null)}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent className="max-h-[68vh] overflow-y-auto p-0">
+              {overviewDetail.households?.length ? (
+                overviewDetail.households.map((household) => (
+                  <HouseholdDetailRow key={household.id} household={household} />
+                ))
+              ) : overviewDetail.members?.length ? (
+                overviewDetail.members.map((member) => <MemberDetailRow key={member.id} member={member} />)
+              ) : (
+                <p className="p-5 text-sm text-[var(--brand-muted)]">{overviewDetail.emptyText}</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
       ) : null}
     </div>
