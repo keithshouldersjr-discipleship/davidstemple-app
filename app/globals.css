@@ -149,14 +149,14 @@ a {
 
   .admin-directory-list {
     display: block !important;
-    column-count: 2 !important;
-    column-gap: 8px !important;
+    column-count: auto !important;
+    column-gap: normal !important;
     max-height: none !important;
     overflow: visible !important;
   }
 
   .admin-directory-member-row {
-    display: inline-block !important;
+    display: block !important;
     width: 100% !important;
     margin: 0 0 7px !important;
     break-inside: avoid !important;
@@ -168,6 +168,11 @@ a {
     border-radius: 8px !important;
     padding: 6px 8px !important;
     background: #ffffff !important;
+  }
+
+  .admin-directory-member-row:nth-child(11n + 11) {
+    break-before: page !important;
+    page-break-before: always !important;
   }
 
   .admin-directory-member-button {
