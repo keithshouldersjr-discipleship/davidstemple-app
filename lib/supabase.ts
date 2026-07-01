@@ -63,8 +63,21 @@ export type SupabaseMemberProfileRow = {
   ministry_interests: string[] | null;
   deacon_group: string | null;
   household_leader_id: string | null;
+  care_status: "none" | "sick_shut_in" | "bereavement" | null;
+  care_notes: string | null;
+  care_updated_at: string | null;
   status: "active" | "inactive" | "deceased";
   notes: string | null;
+};
+
+export type SupabaseMemberContactLogRow = {
+  id: string;
+  member_id: string;
+  contact_type: string;
+  notes: string;
+  contacted_at: string;
+  created_by: string | null;
+  created_at: string;
 };
 
 export type SupabaseBulletinIssueRow = {

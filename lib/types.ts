@@ -64,6 +64,7 @@ export type MinistryContact = {
 };
 
 export type MemberStatus = "active" | "inactive" | "deceased";
+export type CareStatus = "none" | "sick_shut_in" | "bereavement";
 
 export type MemberProfile = {
   id: string;
@@ -77,6 +78,9 @@ export type MemberProfile = {
   ministryInterests: string[];
   deaconGroup?: string;
   householdLeaderId?: string;
+  careStatus?: CareStatus;
+  careNotes?: string;
+  careUpdatedAt?: string;
   status: MemberStatus;
   notes?: string;
 };

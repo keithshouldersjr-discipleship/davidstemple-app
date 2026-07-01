@@ -8,6 +8,22 @@ alter table public.member_profiles
 add column if not exists household_leader_id uuid references public.member_profiles(id) on delete set null;
 
 alter table public.member_profiles
+add column if not exists care_status text not null default 'none';
+
+alter table public.member_profiles
+add column if not exists care_notes text;
+
+alter table public.member_profiles
+add column if not exists care_updated_at timestamptz;
+
+alter table public.member_profiles
+drop constraint if exists member_profiles_care_status_check;
+
+alter table public.member_profiles
+add constraint member_profiles_care_status_check
+check (care_status in ('none', 'sick_shut_in', 'bereavement'));
+
+alter table public.member_profiles
 drop constraint if exists member_profiles_household_leader_not_self;
 
 alter table public.member_profiles
@@ -20,6 +36,22 @@ where external_id is not null;
 
 create index if not exists member_profiles_household_leader_id_idx
 on public.member_profiles (household_leader_id);
+
+create index if not exists member_profiles_care_status_idx
+on public.member_profiles (care_status);
+
+create table if not exists public.member_contact_logs (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references public.member_profiles(id) on delete cascade,
+  contact_type text not null default 'note' check (contact_type in ('note', 'call', 'visit', 'text', 'card', 'prayer', 'other')),
+  notes text not null,
+  contacted_at timestamptz not null default now(),
+  created_by text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists member_contact_logs_member_id_contacted_at_idx
+on public.member_contact_logs (member_id, contacted_at desc);
 
 insert into public.member_profiles (
   external_id,

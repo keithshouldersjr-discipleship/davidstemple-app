@@ -29,6 +29,9 @@ create table if not exists public.member_profiles (
   ministry_interests text[] not null default '{}',
   deacon_group text,
   household_leader_id uuid references public.member_profiles(id) on delete set null,
+  care_status text not null default 'none' check (care_status in ('none', 'sick_shut_in', 'bereavement')),
+  care_notes text,
+  care_updated_at timestamptz,
   status text not null default 'active' check (status in ('active', 'inactive', 'deceased')),
   notes text,
   created_at timestamptz not null default now(),
@@ -40,6 +43,22 @@ add column if not exists external_id text;
 
 alter table public.member_profiles
 add column if not exists household_leader_id uuid references public.member_profiles(id) on delete set null;
+
+alter table public.member_profiles
+add column if not exists care_status text not null default 'none';
+
+alter table public.member_profiles
+add column if not exists care_notes text;
+
+alter table public.member_profiles
+add column if not exists care_updated_at timestamptz;
+
+alter table public.member_profiles
+drop constraint if exists member_profiles_care_status_check;
+
+alter table public.member_profiles
+add constraint member_profiles_care_status_check
+check (care_status in ('none', 'sick_shut_in', 'bereavement'));
 
 alter table public.member_profiles
 drop constraint if exists member_profiles_household_leader_not_self;
@@ -55,8 +74,25 @@ where external_id is not null;
 create index if not exists member_profiles_household_leader_id_idx
 on public.member_profiles (household_leader_id);
 
+create index if not exists member_profiles_care_status_idx
+on public.member_profiles (care_status);
+
+create table if not exists public.member_contact_logs (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references public.member_profiles(id) on delete cascade,
+  contact_type text not null default 'note' check (contact_type in ('note', 'call', 'visit', 'text', 'card', 'prayer', 'other')),
+  notes text not null,
+  contacted_at timestamptz not null default now(),
+  created_by text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists member_contact_logs_member_id_contacted_at_idx
+on public.member_contact_logs (member_id, contacted_at desc);
+
 alter table public.admin_users enable row level security;
 alter table public.member_profiles enable row level security;
+alter table public.member_contact_logs enable row level security;
 
 create or replace function public.is_admin_user()
 returns boolean
@@ -147,6 +183,28 @@ with check (
   or lower(email) = lower(auth.jwt() ->> 'email')
 );
 
+drop policy if exists "Admins can read member contact logs" on public.member_contact_logs;
+create policy "Admins can read member contact logs"
+on public.member_contact_logs
+for select
+to authenticated
+using (public.can_manage_directory());
+
+drop policy if exists "Admins can insert member contact logs" on public.member_contact_logs;
+create policy "Admins can insert member contact logs"
+on public.member_contact_logs
+for insert
+to authenticated
+with check (public.can_manage_directory());
+
+drop policy if exists "Admins can update member contact logs" on public.member_contact_logs;
+create policy "Admins can update member contact logs"
+on public.member_contact_logs
+for update
+to authenticated
+using (public.can_manage_directory())
+with check (public.can_manage_directory());
+
 -- Replace this email with your Supabase Auth user email before running,
 -- or run a separate insert after the tables are created.
 -- insert into public.admin_users (email, role)
@@ -154,7 +212,7 @@ with check (
 -- on conflict (email) do update set role = excluded.role;
 
 -- Google Sheets / CSV import column pattern:
--- external_id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,household_leader_id,status,notes
+-- external_id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,household_leader_id,care_status,care_notes,status,notes
 --
 -- Use MM-DD for birthday_month_day so the directory never stores birth years.
 -- Use comma-separated text for children and ministry_interests before converting to text[].
