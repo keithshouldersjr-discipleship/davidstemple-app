@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AlertCircle,
   CalendarDays,
   ClipboardList,
   HeartHandshake,
@@ -28,7 +28,7 @@ import type { CareStatus, MemberProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type ShepherdingTab = "overview" | "deacons" | "health" | "prayer";
-type OverviewDetailKey = "active" | "households" | "withoutDeacon" | "birthdays";
+type OverviewDetailKey = "active" | "households" | "prayerList" | "birthdays";
 type ContactType = "note" | "call" | "visit" | "text" | "card" | "prayer" | "other";
 
 type PrayerListFormState = {
@@ -163,6 +163,10 @@ function hasContactInfo(member: MemberProfile) {
 function getCurrentMonthDay() {
   const now = new Date();
   return String(now.getMonth() + 1).padStart(2, "0");
+}
+
+function getCurrentMonthName() {
+  return new Intl.DateTimeFormat("en-US", { month: "long" }).format(new Date());
 }
 
 function isBirthdayThisMonth(member: MemberProfile) {
@@ -458,18 +462,6 @@ export function ShepherdingDashboard() {
     return Array.from(groups.entries()).sort(([first], [second]) => first.localeCompare(second));
   }, [activeMembers]);
 
-  const ministryInterestCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-
-    for (const member of activeMembers) {
-      for (const ministry of member.ministryInterests) {
-        counts.set(ministry, (counts.get(ministry) ?? 0) + 1);
-      }
-    }
-
-    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
-  }, [activeMembers]);
-
   const prayerListMembers = useMemo(
     () =>
       activeMembers
@@ -531,11 +523,11 @@ export function ShepherdingDashboard() {
         households: householdGroups,
         emptyText: "No household groupings are currently listed.",
       },
-      withoutDeacon: {
-        title: "Without deacon assignment",
-        description: "Active members who still need to be assigned to a deacon care group.",
-        members: withoutDeacon,
-        emptyText: "Every active member has a deacon assignment.",
+      prayerList: {
+        title: "Prayer list",
+        description: "Members currently listed for sick & shut-in or bereavement prayer care.",
+        members: prayerListMembers,
+        emptyText: "No members are currently on the prayer list.",
       },
       birthdays: {
         title: "Birthdays this month",
@@ -546,7 +538,7 @@ export function ShepherdingDashboard() {
     };
 
     return details[overviewDetailKey];
-  }, [activeMembers, birthdaysThisMonth, householdGroups, overviewDetailKey, withoutDeacon]);
+  }, [activeMembers, birthdaysThisMonth, householdGroups, overviewDetailKey, prayerListMembers]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -764,7 +756,27 @@ export function ShepherdingDashboard() {
       ) : null}
 
       {!isLoading && activeTab === "overview" ? (
-        <div className="space-y-6">
+        <div className="shepherding-overview-print space-y-6">
+          <div className="shepherding-print-header">
+            <Image
+              src="/shepherding-dashboard-logo.png"
+              alt="David's Temple Missionary Baptist Church"
+              width={320}
+              height={180}
+              className="shepherding-print-logo"
+            />
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--brand-burgundy)]">
+                Monthly Deacon Meeting
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold text-[var(--brand-navy)]">
+                Shepherding Overview
+              </h2>
+              <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                {getCurrentMonthName()} prayer, birthday, and care summary
+              </p>
+            </div>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               icon={<Users className="h-5 w-5" />}
@@ -774,56 +786,62 @@ export function ShepherdingDashboard() {
             />
             <MetricCard
               icon={<Home className="h-5 w-5" />}
-              label="Households represented"
+              label="Households"
               value={householdGroups.length}
               tone="green"
               onClick={() => setOverviewDetailKey("households")}
             />
             <MetricCard
-              icon={<AlertCircle className="h-5 w-5" />}
-              label="Without deacon assignment"
-              value={withoutDeacon.length}
+              icon={<HeartHandshake className="h-5 w-5" />}
+              label="Prayer List"
+              value={prayerListMembers.length}
               tone="amber"
-              onClick={() => setOverviewDetailKey("withoutDeacon")}
+              onClick={() => setOverviewDetailKey("prayerList")}
             />
             <MetricCard
               icon={<CalendarDays className="h-5 w-5" />}
-              label="Birthdays this month"
+              label="Birthdays"
               value={birthdaysThisMonth.length}
               tone="burgundy"
               onClick={() => setOverviewDetailKey("birthdays")}
             />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
-            <SimpleList
-              title="Prayer attention this month"
-              items={[
-                ...birthdaysThisMonth.map((member) => `${getMemberName(member)} - birthday ${member.birthdayMonthDay}`),
-                ...inactiveMembers.slice(0, 5).map((member) => `${getMemberName(member)} - inactive member`),
-              ]}
-              emptyText="No birthdays or inactive members are showing for this month."
-            />
-            <SimpleList
-              title="Follow-up opportunities"
-              items={[
-                ...withoutDeacon.slice(0, 6).map((member) => `${getMemberName(member)} - assign a deacon`),
-                ...withoutContact.slice(0, 4).map((member) => `${getMemberName(member)} - missing phone/email`),
-              ]}
-              emptyText="No obvious follow-up gaps are showing right now."
-            />
-          </div>
-          <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
-            <p className="font-semibold text-[var(--brand-navy)]">Ministry interest signals</p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {ministryInterestCounts.length ? (
-                ministryInterestCounts.map(([ministry, count]) => (
-                  <div key={ministry} className="rounded-2xl bg-[var(--brand-soft)] p-4">
-                    <p className="text-2xl font-semibold text-[var(--brand-navy)]">{count}</p>
-                    <p className="mt-1 text-sm text-[var(--brand-muted)]">{ministry}</p>
-                  </div>
-                ))
+            <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
+              <p className="font-semibold text-[var(--brand-navy)]">Birthdays for {getCurrentMonthName()}</p>
+              {birthdaysThisMonth.length ? (
+                <div className="mt-3 divide-y divide-[var(--brand-border)]">
+                  {birthdaysThisMonth.map((member) => (
+                    <div key={member.id} className="grid gap-1 py-2 text-sm sm:grid-cols-[1fr_auto]">
+                      <p className="font-medium text-[var(--brand-navy)]">{getMemberName(member)}</p>
+                      <p className="text-[var(--brand-muted)]">{member.birthdayMonthDay}</p>
+                    </div>
+                  ))}
+                </div>
               ) : (
-                <p className="text-sm text-[var(--brand-muted)]">No ministry interests have been recorded yet.</p>
+                <p className="mt-3 text-sm text-[var(--brand-muted)]">No birthdays are listed for this month.</p>
+              )}
+            </div>
+            <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
+              <p className="font-semibold text-[var(--brand-navy)]">Prayer List</p>
+              {prayerListMembers.length ? (
+                <div className="mt-3 divide-y divide-[var(--brand-border)]">
+                  {prayerListMembers.map((member) => (
+                    <div key={member.id} className="py-2 text-sm">
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="font-medium text-[var(--brand-navy)]">{getMemberName(member)}</p>
+                        <p className="text-[var(--brand-burgundy)]">
+                          {careStatusLabels[member.careStatus ?? "none"]}
+                        </p>
+                      </div>
+                      <p className="mt-1 text-[var(--brand-muted)]">
+                        {member.careNotes || "No prayer note listed."}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-[var(--brand-muted)]">No members are currently on the prayer list.</p>
               )}
             </div>
           </div>

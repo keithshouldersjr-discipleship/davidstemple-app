@@ -36,6 +36,10 @@ a {
   background: rgba(138, 0, 31, 0.18);
 }
 
+.shepherding-print-header {
+  display: none;
+}
+
 @media print {
   body {
     background: #ffffff;
@@ -61,5 +65,46 @@ a {
   .admin-directory-list {
     max-height: none !important;
     overflow: visible !important;
+  }
+
+  .shepherding-overview-print {
+    display: block !important;
+    color: #0f172a !important;
+  }
+
+  .shepherding-print-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 18px !important;
+    margin-bottom: 18px !important;
+    padding-bottom: 14px !important;
+    border-bottom: 2px solid var(--brand-navy) !important;
+    break-after: avoid !important;
+  }
+
+  .shepherding-print-logo {
+    width: 132px !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  .shepherding-overview-print button,
+  .shepherding-overview-print > div,
+  .shepherding-overview-print .rounded-2xl {
+    break-inside: avoid !important;
+    box-shadow: none !important;
+  }
+
+  .shepherding-overview-print .grid {
+    gap: 10px !important;
+  }
+
+  .shepherding-overview-print .xl\:grid-cols-4,
+  .shepherding-overview-print .sm\:grid-cols-2 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .shepherding-overview-print .lg\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
