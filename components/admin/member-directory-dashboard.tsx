@@ -236,6 +236,7 @@ export function MemberDirectoryDashboard() {
   const [bulkUpdate, setBulkUpdate] = useState<BulkUpdateState>(emptyBulkUpdate);
   const [isBulkEditMode, setIsBulkEditMode] = useState(false);
   const [isDirectoryMenuOpen, setIsDirectoryMenuOpen] = useState(false);
+  const [isMemberFormModalOpen, setIsMemberFormModalOpen] = useState(false);
 
   const canManageAll = directoryRole === "owner" || directoryRole === "admin";
   const isCommunicationManager = communicationsManagerEmails.includes(currentUserEmail);
@@ -424,6 +425,7 @@ export function MemberDirectoryDashboard() {
     setBulkUpdate(emptyBulkUpdate);
     setIsBulkEditMode(false);
     setIsDirectoryMenuOpen(false);
+    setIsMemberFormModalOpen(false);
   }
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
@@ -462,6 +464,7 @@ export function MemberDirectoryDashboard() {
       setMessage(error.message);
     } else {
       setForm(emptyForm);
+      setIsMemberFormModalOpen(false);
       setProfileModalMode("view");
       await loadMembers();
     }
@@ -478,6 +481,7 @@ export function MemberDirectoryDashboard() {
   function enterBulkEditMode() {
     setIsBulkEditMode(true);
     setIsDirectoryMenuOpen(false);
+    setIsMemberFormModalOpen(false);
     setForm(emptyForm);
   }
 
@@ -486,6 +490,17 @@ export function MemberDirectoryDashboard() {
     setIsDirectoryMenuOpen(false);
     setSelectedMemberIds([]);
     setBulkUpdate(emptyBulkUpdate);
+  }
+
+  function openNewMemberModal() {
+    setForm(emptyForm);
+    setIsDirectoryMenuOpen(false);
+    setIsMemberFormModalOpen(true);
+  }
+
+  function closeMemberFormModal() {
+    setIsMemberFormModalOpen(false);
+    setForm(emptyForm);
   }
 
   function toggleMemberSelection(memberId: string) {
@@ -737,7 +752,7 @@ export function MemberDirectoryDashboard() {
                         Print
                       </Button>
                       {canManageAll ? (
-                        <Button type="button" size="sm" onClick={() => setForm(emptyForm)}>
+                        <Button type="button" size="sm" onClick={openNewMemberModal}>
                           <Plus className="h-4 w-4" />
                           New member
                         </Button>
@@ -876,7 +891,7 @@ export function MemberDirectoryDashboard() {
             {isLoading ? (
               <p className="p-5 text-sm text-[var(--brand-muted)]">Loading directory...</p>
             ) : filteredMembers.length ? (
-              <div className={cn("admin-directory-list overflow-y-auto", isBulkEditMode ? "max-h-[48rem]" : "max-h-[34rem]")}>
+              <div className={cn("admin-directory-list overflow-y-auto", isBulkEditMode ? "max-h-[calc(100vh-20rem)]" : "max-h-[calc(100vh-17rem)]")}>
                 {filteredMembers.map((member) => {
                   const householdLeader = member.householdLeaderId
                     ? membersById.get(member.householdLeaderId)
@@ -935,13 +950,37 @@ export function MemberDirectoryDashboard() {
         </Card>
       ) : null}
 
-      {!isBulkEditMode && (canManageAll || form.id) ? (
-        <div id="member-form" className="admin-no-print">
-          <Card>
-            <CardHeader>
-              <CardTitle>{form.id ? "Update member" : "Add member"}</CardTitle>
+      {isMemberFormModalOpen ? (
+        <div
+          className="admin-no-print fixed inset-0 z-50 flex items-end justify-center bg-slate-950/55 p-3 sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="member-form-modal-title"
+          onClick={closeMemberFormModal}
+        >
+          <Card
+            className="max-h-[88vh] w-full max-w-2xl overflow-hidden"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <CardHeader className="border-b border-[var(--brand-border)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <CardTitle id="member-form-modal-title">Add member</CardTitle>
+                  <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                    Create a member profile and connect household and deacon care details.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--brand-border)] text-[var(--brand-muted)] hover:bg-[var(--brand-soft)]"
+                  aria-label="Close add member form"
+                  onClick={closeMemberFormModal}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="max-h-[68vh] overflow-y-auto p-5">
               <form onSubmit={handleSave} className="grid gap-3">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} placeholder="First name" required />
@@ -956,7 +995,6 @@ export function MemberDirectoryDashboard() {
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   placeholder="Email"
-                  disabled={!canManageAll}
                 />
                 <Input value={form.spouseName} onChange={(e) => setForm({ ...form, spouseName: e.target.value })} placeholder="Spouse name" />
                 <Input value={form.children} onChange={(e) => setForm({ ...form, children: e.target.value })} placeholder="Children, separated by commas" />
@@ -974,48 +1012,37 @@ export function MemberDirectoryDashboard() {
                       </option>
                     ))}
                   </select>
-                  {canManageAll ? (
-                    <select
-                      value={form.status}
-                      onChange={(event) => setForm({ ...form, status: event.target.value as MemberStatus })}
-                      className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                      <option value="deceased">Deceased</option>
-                    </select>
-                  ) : (
-                    <Input value={form.status} disabled />
-                  )}
+                  <select
+                    value={form.status}
+                    onChange={(event) => setForm({ ...form, status: event.target.value as MemberStatus })}
+                    className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="deceased">Deceased</option>
+                  </select>
                 </div>
                 <select
                   value={form.householdLeaderId}
                   onChange={(event) => setForm({ ...form, householdLeaderId: event.target.value })}
-                  className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)] disabled:bg-[var(--brand-soft)] disabled:text-[var(--brand-muted)]"
-                  disabled={!canManageAll}
+                  className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)] outline-none focus:border-[var(--brand-burgundy)]"
                 >
                   <option value="">Household leader / representative</option>
-                  {memberOptions
-                    .filter((member) => member.id !== form.id)
-                    .map((member) => (
-                      <option key={member.id} value={member.id}>
-                        {getMemberName(member)}
-                      </option>
-                    ))}
+                  {memberOptions.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {getMemberName(member)}
+                    </option>
+                  ))}
                 </select>
-                {canManageAll ? (
-                  <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Private notes" />
-                ) : null}
-                <div className="flex flex-col gap-2 sm:flex-row">
+                <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Private notes" />
+                <div className="flex flex-col gap-2 pt-2 sm:flex-row">
                   <Button type="submit" disabled={isSaving}>
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                     Save member
                   </Button>
-                  {form.id ? (
-                    <Button type="button" variant="secondary" onClick={() => setForm(emptyForm)}>
-                      Cancel
-                    </Button>
-                  ) : null}
+                  <Button type="button" variant="secondary" onClick={closeMemberFormModal}>
+                    Cancel
+                  </Button>
                 </div>
               </form>
             </CardContent>
