@@ -414,8 +414,6 @@ export function ShepherdingDashboard() {
   }, [supabase, updateAuthorization]);
 
   const activeMembers = useMemo(() => members.filter((member) => member.status === "active"), [members]);
-  const inactiveMembers = useMemo(() => members.filter((member) => member.status === "inactive"), [members]);
-  const deceasedMembers = useMemo(() => members.filter((member) => member.status === "deceased"), [members]);
   const birthdaysThisMonth = useMemo(() => activeMembers.filter(isBirthdayThisMonth), [activeMembers]);
   const withoutDeacon = useMemo(() => activeMembers.filter((member) => !member.deaconGroup), [activeMembers]);
   const withoutContact = useMemo(() => activeMembers.filter((member) => !hasContactInfo(member)), [activeMembers]);
@@ -900,11 +898,17 @@ export function ShepherdingDashboard() {
 
       {!isLoading && activeTab === "health" ? (
         <div className="space-y-6">
+          <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
+            <p className="font-semibold text-[var(--brand-navy)]">Active member data health</p>
+            <p className="mt-1 text-sm text-[var(--brand-muted)]">
+              These counts and lists only include active members.
+            </p>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard icon={<Phone className="h-5 w-5" />} label="Missing phone/email" value={withoutContact.length} tone="amber" />
-            <MetricCard icon={<HeartHandshake className="h-5 w-5" />} label="Missing deacon group" value={withoutDeacon.length} tone="amber" />
-            <MetricCard icon={<Home className="h-5 w-5" />} label="No household grouping" value={withoutHousehold.length} tone="burgundy" />
-            <MetricCard icon={<ClipboardList className="h-5 w-5" />} label="No ministry interests" value={withoutMinistryInterest.length} />
+            <MetricCard icon={<Phone className="h-5 w-5" />} label="Active missing phone/email" value={withoutContact.length} tone="amber" />
+            <MetricCard icon={<HeartHandshake className="h-5 w-5" />} label="Active missing deacon" value={withoutDeacon.length} tone="amber" />
+            <MetricCard icon={<Home className="h-5 w-5" />} label="Active without household" value={withoutHousehold.length} tone="burgundy" />
+            <MetricCard icon={<ClipboardList className="h-5 w-5" />} label="Active without interests" value={withoutMinistryInterest.length} />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <SimpleList
@@ -927,23 +931,6 @@ export function ShepherdingDashboard() {
               items={withoutHousehold.map(getMemberName)}
               emptyText="Every active member is represented in a household grouping."
             />
-          </div>
-          <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
-            <p className="font-semibold text-[var(--brand-navy)]">Status counts</p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl bg-emerald-50 p-4 text-emerald-700">
-                <p className="text-2xl font-semibold">{activeMembers.length}</p>
-                <p className="text-sm">Active</p>
-              </div>
-              <div className="rounded-2xl bg-amber-50 p-4 text-amber-700">
-                <p className="text-2xl font-semibold">{inactiveMembers.length}</p>
-                <p className="text-sm">Inactive</p>
-              </div>
-              <div className="rounded-2xl bg-red-50 p-4 text-red-700">
-                <p className="text-2xl font-semibold">{deceasedMembers.length}</p>
-                <p className="text-sm">Deceased</p>
-              </div>
-            </div>
           </div>
         </div>
       ) : null}
