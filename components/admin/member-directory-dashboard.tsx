@@ -197,6 +197,12 @@ function getMemberOptionLabel(member: MemberProfile) {
   return details.length ? `${getMemberName(member)} - ${details.join(" - ")}` : getMemberName(member);
 }
 
+function formatStatusLabel(value: MemberStatus | "all") {
+  if (value === "all") return "All statuses";
+
+  return `${value.charAt(0).toUpperCase()}${value.slice(1)} members`;
+}
+
 function canEditMember(member: MemberProfile, currentUserEmail: string, role: DirectoryRole) {
   return (
     role === "owner" ||
@@ -316,6 +322,22 @@ export function MemberDirectoryDashboard() {
   const selectedHouseholdMembers = selectedMember
     ? members.filter((member) => member.householdLeaderId === selectedMember.id)
     : [];
+  const directoryPrintTitle = useMemo(() => {
+    if (deaconGroup !== "all") return `${deaconGroup} Member List`;
+    if (status !== "all") return formatStatusLabel(status);
+    if (search.trim()) return "Filtered Church Directory";
+
+    return "Church Directory";
+  }, [deaconGroup, search, status]);
+  const directoryPrintFilters = useMemo(() => {
+    const filters = [
+      status !== "all" ? formatStatusLabel(status) : undefined,
+      deaconGroup !== "all" ? deaconGroup : undefined,
+      search.trim() ? `Search: ${search.trim()}` : undefined,
+    ].filter(Boolean);
+
+    return filters.length ? filters.join(" · ") : "All member profiles";
+  }, [deaconGroup, search, status]);
 
   const loadMembers = useCallback(async () => {
     if (!supabase) return;
@@ -725,6 +747,17 @@ export function MemberDirectoryDashboard() {
 
       {canViewFullDirectory ? (
         <Card className="admin-directory-print overflow-visible">
+          <div className="admin-directory-print-header">
+            <p className="admin-directory-print-eyebrow">David&apos;s Temple Missionary Baptist Church</p>
+            <div>
+              <h1>{directoryPrintTitle}</h1>
+              <p>{directoryPrintFilters}</p>
+            </div>
+            <div className="admin-directory-print-meta">
+              <span>{filteredMembers.length} member{filteredMembers.length === 1 ? "" : "s"}</span>
+              <span>{new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date())}</span>
+            </div>
+          </div>
           <CardHeader className="admin-no-print border-b border-[var(--brand-border)]">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -911,7 +944,7 @@ export function MemberDirectoryDashboard() {
                     <div
                       key={member.id}
                       className={cn(
-                        "grid items-center gap-3 border-b border-[var(--brand-border)] px-4 py-3 transition hover:bg-[var(--brand-soft)]",
+                        "admin-directory-member-row grid items-center gap-3 border-b border-[var(--brand-border)] px-4 py-3 transition hover:bg-[var(--brand-soft)]",
                         isBulkEditMode ? "grid-cols-[auto_1fr]" : "grid-cols-1",
                         selectedMember?.id === member.id && "bg-[var(--brand-burgundy-soft)]",
                       )}
@@ -927,21 +960,44 @@ export function MemberDirectoryDashboard() {
                       ) : null}
                       <button
                         type="button"
-                        className="grid w-full grid-cols-1 gap-2 text-left sm:grid-cols-[1fr_auto]"
+                        className="admin-directory-member-button grid w-full grid-cols-1 gap-2 text-left sm:grid-cols-[1fr_auto]"
                         onClick={() => openProfileModal(member.id)}
                       >
                         <span>
-                          <span className="block font-semibold text-[var(--brand-navy)]">
+                          <span className="admin-directory-member-name block font-semibold text-[var(--brand-navy)]">
                             {member.firstName} {member.lastName}
                           </span>
-                          <span className="mt-1 block text-xs text-[var(--brand-muted)]">
+                          <span className="admin-directory-member-care mt-1 block text-xs text-[var(--brand-muted)]">
                             {member.deaconGroup ?? "No deacon group listed"}
                             {householdLeader ? ` · Household: ${getMemberName(householdLeader)}` : ""}
                           </span>
+                          <span className="admin-directory-print-details">
+                            <span>Birthday: {member.birthdayMonthDay ?? "Not listed"}</span>
+                            <span>
+                              Household:{" "}
+                              {householdLeader
+                                ? getMemberName(householdLeader)
+                                : members.some((candidate) => candidate.householdLeaderId === member.id)
+                                  ? `${getMemberName(member)} household`
+                                  : "Not grouped"}
+                            </span>
+                            {members.some((candidate) => candidate.householdLeaderId === member.id) ? (
+                              <span>
+                                Household members:{" "}
+                                {members
+                                  .filter((candidate) => candidate.householdLeaderId === member.id)
+                                  .map(getMemberName)
+                                  .join(", ")}
+                              </span>
+                            ) : null}
+                          </span>
                         </span>
-                        <span className="flex items-center gap-2 text-sm font-medium text-[var(--brand-muted)] sm:justify-end">
+                        <span className="admin-directory-member-contact flex items-center gap-2 text-sm font-medium text-[var(--brand-muted)] sm:justify-end">
                           <Phone className="h-4 w-4 text-[var(--brand-burgundy)]" />
-                          {formatPhoneNumber(member.phone) || "No phone"}
+                          <span>
+                            {formatPhoneNumber(member.phone) || "No phone"}
+                            {member.email ? <span className="admin-directory-print-email"> · {member.email}</span> : null}
+                          </span>
                         </span>
                       </button>
                     </div>

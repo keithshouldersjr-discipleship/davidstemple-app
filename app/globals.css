@@ -44,6 +44,12 @@ a {
   display: none;
 }
 
+.admin-directory-print-header,
+.admin-directory-print-details,
+.admin-directory-print-email {
+  display: none;
+}
+
 @media print {
   @page {
     size: letter;
@@ -68,14 +74,132 @@ a {
   }
 
   .admin-directory-print {
+    display: block !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #0f172a !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+  }
+
+  .admin-directory-print-header {
     display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 12px !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 8px 18px !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 2px solid var(--brand-navy) !important;
+    break-after: avoid !important;
+  }
+
+  .admin-directory-print-eyebrow {
+    grid-column: 1 / -1 !important;
+    margin: 0 !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0.16em !important;
+    text-transform: uppercase !important;
+    color: var(--brand-burgundy) !important;
+  }
+
+  .admin-directory-print-header h1 {
+    margin: 0 !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    color: var(--brand-navy) !important;
+  }
+
+  .admin-directory-print-header p {
+    margin: 2px 0 0 !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    color: var(--brand-muted) !important;
+  }
+
+  .admin-directory-print-meta {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    justify-content: end !important;
+    gap: 2px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    color: var(--brand-navy) !important;
   }
 
   .admin-directory-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
     max-height: none !important;
     overflow: visible !important;
+  }
+
+  .admin-directory-member-row {
+    display: block !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    border: 1px solid var(--brand-border) !important;
+    border-radius: 8px !important;
+    padding: 7px 8px !important;
+    background: #ffffff !important;
+  }
+
+  .admin-directory-member-button {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    align-items: start !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .admin-directory-member-name {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.15 !important;
+    color: var(--brand-navy) !important;
+  }
+
+  .admin-directory-member-care {
+    margin-top: 2px !important;
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    color: var(--brand-burgundy) !important;
+  }
+
+  .admin-directory-print-details {
+    display: grid !important;
+    gap: 1px !important;
+    margin-top: 4px !important;
+    font-size: 9.5px !important;
+    line-height: 1.2 !important;
+    color: var(--brand-text) !important;
+  }
+
+  .admin-directory-member-contact {
+    display: block !important;
+    max-width: 1.8in !important;
+    text-align: right !important;
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    color: var(--brand-muted) !important;
+  }
+
+  .admin-directory-member-contact svg {
+    display: none !important;
+  }
+
+  .admin-directory-print-email {
+    display: block !important;
+    overflow-wrap: anywhere !important;
+    font-weight: 500 !important;
   }
 
   .shepherding-overview-print {
