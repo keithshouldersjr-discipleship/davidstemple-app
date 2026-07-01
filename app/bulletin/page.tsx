@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { WeeklyBulletin } from "@/components/bulletin/weekly-bulletin";
-import { getCurrentBulletin } from "@/lib/bulletin-data";
+import { getCurrentBulletin } from "@/lib/bulletin-server";
 
 export const revalidate = 60;
 

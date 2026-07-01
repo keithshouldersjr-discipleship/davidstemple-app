@@ -1,7 +1,8 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getCurrentBulletin, type WeeklyBulletin } from "@/lib/bulletin-data";
+import { type WeeklyBulletin } from "@/lib/bulletin-data";
+import { getCurrentBulletin } from "@/lib/bulletin-server";
 
 const bulletinManagerEmail = "keithshouldersjr@gmail.com";
 

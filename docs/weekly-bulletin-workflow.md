@@ -37,20 +37,16 @@ Then deploy the app.
 
 ## Form Fields
 
-The admin form maps to the same sections shown on the bulletin:
+The admin form intentionally locks most layout fields. Only these weekly fields
+are editable:
 
-- Header, slug, and date range
 - Pastor note
 - This Sunday's scripture passage
-- Weekly schedule
-- Important links
-- Sunday invitation
 - Upcoming events
-- Serve and get involved
 - Ministry spotlight
-- Prayer and care
-- Stay connected
-- Footer details
+
+The Upcoming Events panel is manually curated so the weekly bulletin can
+emphasize the most important dates.
 
 ## Manual JSON Steps
 
