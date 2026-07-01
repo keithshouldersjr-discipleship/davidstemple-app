@@ -23,9 +23,17 @@ const dtSocialTeamEmails = (
   .map((email) => email.trim().toLowerCase())
   .filter(Boolean);
 
+const shepherdingDashboardEmails = (
+  process.env.NEXT_PUBLIC_SHEPHERDING_DASHBOARD_EMAILS ?? "keithshouldersjr@gmail.com"
+)
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
+
 export function SiteHeader() {
   const [isOpen, setIsOpen] = useState(false);
   const [showDtSocialLink, setShowDtSocialLink] = useState(false);
+  const [showShepherdingLink, setShowShepherdingLink] = useState(false);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -35,6 +43,7 @@ export function SiteHeader() {
     function updateTeamLinks(email?: string | null) {
       const normalizedEmail = email?.toLowerCase();
       setShowDtSocialLink(Boolean(normalizedEmail && dtSocialTeamEmails.includes(normalizedEmail)));
+      setShowShepherdingLink(Boolean(normalizedEmail && shepherdingDashboardEmails.includes(normalizedEmail)));
     }
 
     supabase.auth.getUser().then(({ data }) => {
@@ -99,6 +108,15 @@ export function SiteHeader() {
               >
                 DT Social
               </a>
+            ) : null}
+            {showShepherdingLink ? (
+              <Link
+                href="/admin/shepherding"
+                className="rounded-2xl px-4 py-3 text-base font-medium !text-white hover:bg-white/10"
+                onClick={() => setIsOpen(false)}
+              >
+                Shepherding Dashboard
+              </Link>
             ) : null}
           </div>
         </nav>

@@ -1,0 +1,608 @@
+"use client";
+
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  AlertCircle,
+  CalendarDays,
+  CheckCircle2,
+  ClipboardList,
+  HeartHandshake,
+  Home,
+  Loader2,
+  Lock,
+  Phone,
+  Printer,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  createSupabaseBrowserClient,
+  type SupabaseMemberProfileRow,
+} from "@/lib/supabase";
+import type { MemberProfile } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+type ShepherdingTab = "overview" | "deacons" | "health" | "meeting";
+
+const shepherdingDashboardEmails = (
+  process.env.NEXT_PUBLIC_SHEPHERDING_DASHBOARD_EMAILS ?? "keithshouldersjr@gmail.com"
+)
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
+
+const tabLabels: Record<ShepherdingTab, string> = {
+  overview: "Overview",
+  deacons: "Deacon Care",
+  health: "Data Health",
+  meeting: "Meeting Mode",
+};
+
+function formatPhoneNumber(value?: string) {
+  const digits = (value ?? "").replace(/\D/g, "");
+
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+
+  return value ?? "";
+}
+
+function toMemberProfile(row: SupabaseMemberProfileRow): MemberProfile {
+  return {
+    id: row.id,
+    firstName: row.first_name,
+    lastName: row.last_name,
+    birthdayMonthDay: row.birthday_month_day ?? undefined,
+    phone: row.phone ? formatPhoneNumber(row.phone) : undefined,
+    email: row.email ?? undefined,
+    spouseName: row.spouse_name ?? undefined,
+    children: row.children ?? [],
+    ministryInterests: row.ministry_interests ?? [],
+    deaconGroup: row.deacon_group ?? undefined,
+    householdLeaderId: row.household_leader_id ?? undefined,
+    status: row.status,
+    notes: row.notes ?? undefined,
+  };
+}
+
+function getMemberName(member: MemberProfile) {
+  return `${member.firstName} ${member.lastName}`.trim();
+}
+
+function hasContactInfo(member: MemberProfile) {
+  return Boolean(member.phone || member.email);
+}
+
+function getCurrentMonthDay() {
+  const now = new Date();
+  return String(now.getMonth() + 1).padStart(2, "0");
+}
+
+function isBirthdayThisMonth(member: MemberProfile) {
+  return member.birthdayMonthDay?.slice(0, 2) === getCurrentMonthDay();
+}
+
+function countHouseholds(members: MemberProfile[]) {
+  const households = new Set<string>();
+
+  for (const member of members) {
+    households.add(member.householdLeaderId ?? member.id);
+  }
+
+  return households.size;
+}
+
+function MetricCard({
+  icon,
+  label,
+  value,
+  tone = "navy",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  tone?: "navy" | "burgundy" | "amber" | "green";
+}) {
+  const toneClass = {
+    navy: "bg-[var(--brand-navy)]/8 text-[var(--brand-navy)]",
+    burgundy: "bg-[var(--brand-burgundy-soft)] text-[var(--brand-burgundy)]",
+    amber: "bg-amber-50 text-amber-700",
+    green: "bg-emerald-50 text-emerald-700",
+  }[tone];
+
+  return (
+    <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
+      <div className={cn("mb-4 flex h-10 w-10 items-center justify-center rounded-full", toneClass)}>
+        {icon}
+      </div>
+      <p className="text-3xl font-semibold text-[var(--brand-navy)]">{value}</p>
+      <p className="mt-1 text-sm text-[var(--brand-muted)]">{label}</p>
+    </div>
+  );
+}
+
+function SimpleList({
+  title,
+  items,
+  emptyText,
+}: {
+  title: string;
+  items: string[];
+  emptyText: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
+      <p className="font-semibold text-[var(--brand-navy)]">{title}</p>
+      {items.length ? (
+        <ul className="mt-3 space-y-2 text-sm text-[var(--brand-text)]">
+          {items.slice(0, 10).map((item) => (
+            <li key={item} className="border-b border-[var(--brand-border)] pb-2 last:border-0 last:pb-0">
+              {item}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-3 text-sm text-[var(--brand-muted)]">{emptyText}</p>
+      )}
+    </div>
+  );
+}
+
+export function ShepherdingDashboard() {
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isAllowed, setIsAllowed] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(supabase));
+  const [message, setMessage] = useState("");
+  const [members, setMembers] = useState<MemberProfile[]>([]);
+  const [activeTab, setActiveTab] = useState<ShepherdingTab>("overview");
+  const [meetingFilter, setMeetingFilter] = useState("all");
+
+  const loadMembers = useCallback(async () => {
+    if (!supabase) return;
+
+    setIsLoading(true);
+    setMessage("");
+
+    const { data, error } = await supabase
+      .from("member_profiles")
+      .select(
+        "id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,household_leader_id,status,notes",
+      )
+      .order("last_name", { ascending: true })
+      .order("first_name", { ascending: true });
+
+    if (error) {
+      setMessage("I could not load the member data for the shepherding dashboard.");
+      setMembers([]);
+    } else {
+      setMembers((data as SupabaseMemberProfileRow[]).map(toMemberProfile));
+    }
+
+    setIsLoading(false);
+  }, [supabase]);
+
+  const updateAuthorization = useCallback(
+    async (userEmail?: string | null) => {
+      const normalizedEmail = userEmail?.toLowerCase() ?? "";
+      const allowed = Boolean(normalizedEmail && shepherdingDashboardEmails.includes(normalizedEmail));
+
+      setCurrentUserEmail(normalizedEmail);
+      setIsAllowed(allowed);
+
+      if (allowed) {
+        await loadMembers();
+      } else {
+        setMembers([]);
+        setIsLoading(false);
+      }
+    },
+    [loadMembers],
+  );
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    supabase.auth.getSession().then(({ data }) => {
+      const signedIn = Boolean(data.session);
+      setIsSignedIn(signedIn);
+
+      if (signedIn) {
+        void updateAuthorization(data.session?.user.email);
+      } else {
+        setIsLoading(false);
+      }
+    });
+  }, [supabase, updateAuthorization]);
+
+  const activeMembers = useMemo(() => members.filter((member) => member.status === "active"), [members]);
+  const inactiveMembers = useMemo(() => members.filter((member) => member.status === "inactive"), [members]);
+  const deceasedMembers = useMemo(() => members.filter((member) => member.status === "deceased"), [members]);
+  const birthdaysThisMonth = useMemo(() => activeMembers.filter(isBirthdayThisMonth), [activeMembers]);
+  const withoutDeacon = useMemo(() => activeMembers.filter((member) => !member.deaconGroup), [activeMembers]);
+  const withoutContact = useMemo(() => activeMembers.filter((member) => !hasContactInfo(member)), [activeMembers]);
+  const withoutHousehold = useMemo(
+    () => activeMembers.filter((member) => !member.householdLeaderId && !activeMembers.some((other) => other.householdLeaderId === member.id)),
+    [activeMembers],
+  );
+  const withoutBirthday = useMemo(() => activeMembers.filter((member) => !member.birthdayMonthDay), [activeMembers]);
+  const withoutMinistryInterest = useMemo(
+    () => activeMembers.filter((member) => member.ministryInterests.length === 0),
+    [activeMembers],
+  );
+
+  const deaconGroups = useMemo(() => {
+    const groups = new Map<string, MemberProfile[]>();
+
+    for (const member of activeMembers) {
+      const group = member.deaconGroup ?? "Unassigned";
+      groups.set(group, [...(groups.get(group) ?? []), member]);
+    }
+
+    return Array.from(groups.entries()).sort(([first], [second]) => first.localeCompare(second));
+  }, [activeMembers]);
+
+  const ministryInterestCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    for (const member of activeMembers) {
+      for (const ministry of member.ministryInterests) {
+        counts.set(ministry, (counts.get(ministry) ?? 0) + 1);
+      }
+    }
+
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  }, [activeMembers]);
+
+  const meetingMembers = useMemo(() => {
+    if (meetingFilter === "all") return activeMembers;
+
+    return activeMembers.filter((member) => (member.deaconGroup ?? "Unassigned") === meetingFilter);
+  }, [activeMembers, meetingFilter]);
+
+  async function handleLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!supabase) return;
+
+    setIsLoading(true);
+    setMessage("");
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setMessage(error.message);
+      setIsSignedIn(false);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsSignedIn(true);
+    await updateAuthorization(data.user.email);
+  }
+
+  if (!supabase) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="font-semibold text-[var(--brand-navy)]">Supabase is required for this dashboard.</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">
+            Add your Supabase URL and anon key to `.env.local`, then restart the app.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <Card className="max-w-xl">
+        <CardHeader>
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--brand-navy)]/8 text-[var(--brand-navy)]">
+            <Lock className="h-6 w-6" />
+          </span>
+          <CardTitle>Pastor sign in</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <Input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="Email address"
+              required
+            />
+            <Input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Password"
+              required
+            />
+            {message ? <p className="text-sm text-[var(--brand-burgundy)]">{message}</p> : null}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+              Sign in
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!isAllowed) {
+    return (
+      <Card className="max-w-2xl">
+        <CardContent className="p-6">
+          <p className="font-semibold text-[var(--brand-navy)]">This dashboard is limited to the pastor.</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">
+            You are signed in as {currentUserEmail || "an authenticated user"}, but this page is not enabled for that account.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="admin-no-print flex flex-col gap-4 rounded-3xl border border-[var(--brand-border)] bg-white p-4 shadow-sm shadow-slate-900/5 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="font-semibold text-[var(--brand-navy)]">Shepherding dashboards</p>
+          <p className="text-sm text-[var(--brand-muted)]">
+            Simple meeting views for prayer, care, follow-up, and wise decisions.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="secondary" onClick={() => window.print()}>
+            <Printer className="h-4 w-4" />
+            Print
+          </Button>
+          <Button type="button" variant="ghost" onClick={() => void loadMembers()}>
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {message ? (
+        <div className="rounded-2xl border border-[var(--brand-burgundy)]/20 bg-[var(--brand-burgundy-soft)] p-4 text-sm text-[var(--brand-burgundy)]">
+          {message}
+        </div>
+      ) : null}
+
+      <div className="admin-no-print flex overflow-x-auto rounded-full border border-[var(--brand-border)] bg-white p-1 shadow-sm shadow-slate-900/5">
+        {(Object.keys(tabLabels) as ShepherdingTab[]).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            className={cn(
+              "min-w-fit flex-1 rounded-full px-4 py-2 text-sm font-medium transition",
+              activeTab === tab
+                ? "bg-[var(--brand-navy)] text-white"
+                : "text-[var(--brand-muted)] hover:bg-[var(--brand-soft)] hover:text-[var(--brand-navy)]",
+            )}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tabLabels[tab]}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <p className="text-sm text-[var(--brand-muted)]">Loading shepherding data...</p>
+      ) : null}
+
+      {!isLoading && activeTab === "overview" ? (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard icon={<Users className="h-5 w-5" />} label="Active members" value={activeMembers.length} />
+            <MetricCard icon={<Home className="h-5 w-5" />} label="Households represented" value={countHouseholds(activeMembers)} tone="green" />
+            <MetricCard icon={<AlertCircle className="h-5 w-5" />} label="Without deacon assignment" value={withoutDeacon.length} tone="amber" />
+            <MetricCard icon={<CalendarDays className="h-5 w-5" />} label="Birthdays this month" value={birthdaysThisMonth.length} tone="burgundy" />
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <SimpleList
+              title="Prayer attention this month"
+              items={[
+                ...birthdaysThisMonth.map((member) => `${getMemberName(member)} - birthday ${member.birthdayMonthDay}`),
+                ...inactiveMembers.slice(0, 5).map((member) => `${getMemberName(member)} - inactive member`),
+              ]}
+              emptyText="No birthdays or inactive members are showing for this month."
+            />
+            <SimpleList
+              title="Follow-up opportunities"
+              items={[
+                ...withoutDeacon.slice(0, 6).map((member) => `${getMemberName(member)} - assign a deacon`),
+                ...withoutContact.slice(0, 4).map((member) => `${getMemberName(member)} - missing phone/email`),
+              ]}
+              emptyText="No obvious follow-up gaps are showing right now."
+            />
+          </div>
+          <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
+            <p className="font-semibold text-[var(--brand-navy)]">Ministry interest signals</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {ministryInterestCounts.length ? (
+                ministryInterestCounts.map(([ministry, count]) => (
+                  <div key={ministry} className="rounded-2xl bg-[var(--brand-soft)] p-4">
+                    <p className="text-2xl font-semibold text-[var(--brand-navy)]">{count}</p>
+                    <p className="mt-1 text-sm text-[var(--brand-muted)]">{ministry}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-[var(--brand-muted)]">No ministry interests have been recorded yet.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {!isLoading && activeTab === "deacons" ? (
+        <div className="grid gap-4">
+          {deaconGroups.map(([group, groupMembers]) => {
+            const groupWithoutContact = groupMembers.filter((member) => !hasContactInfo(member));
+            const groupBirthdays = groupMembers.filter(isBirthdayThisMonth);
+            const groupHouseholds = countHouseholds(groupMembers);
+
+            return (
+              <div key={group} className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <p className="font-semibold text-[var(--brand-navy)]">{group}</p>
+                    <p className="mt-1 text-sm text-[var(--brand-muted)]">
+                      {groupMembers.length} active members · {groupHouseholds} households
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs font-semibold">
+                    <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">
+                      {groupWithoutContact.length} missing contact
+                    </span>
+                    <span className="rounded-full bg-[var(--brand-burgundy-soft)] px-3 py-1 text-[var(--brand-burgundy)]">
+                      {groupBirthdays.length} birthdays
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                  <SimpleList
+                    title="Prayer notes"
+                    items={groupBirthdays.map((member) => `${getMemberName(member)} - birthday ${member.birthdayMonthDay}`)}
+                    emptyText="No birthdays this month."
+                  />
+                  <SimpleList
+                    title="Contact gaps"
+                    items={groupWithoutContact.map((member) => getMemberName(member))}
+                    emptyText="Every member has phone or email listed."
+                  />
+                  <SimpleList
+                    title="Household leaders"
+                    items={groupMembers
+                      .filter((member) => groupMembers.some((other) => other.householdLeaderId === member.id))
+                      .map((member) => getMemberName(member))}
+                    emptyText="No grouped households are listed for this deacon group yet."
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {!isLoading && activeTab === "health" ? (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard icon={<Phone className="h-5 w-5" />} label="Missing phone/email" value={withoutContact.length} tone="amber" />
+            <MetricCard icon={<HeartHandshake className="h-5 w-5" />} label="Missing deacon group" value={withoutDeacon.length} tone="amber" />
+            <MetricCard icon={<Home className="h-5 w-5" />} label="No household grouping" value={withoutHousehold.length} tone="burgundy" />
+            <MetricCard icon={<ClipboardList className="h-5 w-5" />} label="No ministry interests" value={withoutMinistryInterest.length} />
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <SimpleList
+              title="Profiles needing contact info"
+              items={withoutContact.map(getMemberName)}
+              emptyText="No active members are missing both phone and email."
+            />
+            <SimpleList
+              title="Profiles needing birthday"
+              items={withoutBirthday.map(getMemberName)}
+              emptyText="Every active member has a birthday month/day."
+            />
+            <SimpleList
+              title="Profiles needing deacon assignment"
+              items={withoutDeacon.map(getMemberName)}
+              emptyText="Every active member has a deacon assignment."
+            />
+            <SimpleList
+              title="Household grouping opportunities"
+              items={withoutHousehold.map(getMemberName)}
+              emptyText="Every active member is represented in a household grouping."
+            />
+          </div>
+          <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-4">
+            <p className="font-semibold text-[var(--brand-navy)]">Status counts</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl bg-emerald-50 p-4 text-emerald-700">
+                <p className="text-2xl font-semibold">{activeMembers.length}</p>
+                <p className="text-sm">Active</p>
+              </div>
+              <div className="rounded-2xl bg-amber-50 p-4 text-amber-700">
+                <p className="text-2xl font-semibold">{inactiveMembers.length}</p>
+                <p className="text-sm">Inactive</p>
+              </div>
+              <div className="rounded-2xl bg-red-50 p-4 text-red-700">
+                <p className="text-2xl font-semibold">{deceasedMembers.length}</p>
+                <p className="text-sm">Deceased</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {!isLoading && activeTab === "meeting" ? (
+        <div className="space-y-4">
+          <div className="admin-no-print flex flex-col gap-3 rounded-2xl border border-[var(--brand-border)] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold text-[var(--brand-navy)]">Meeting mode</p>
+              <p className="text-sm text-[var(--brand-muted)]">Readable lists for deacon meetings and prayerful follow-up.</p>
+            </div>
+            <select
+              value={meetingFilter}
+              onChange={(event) => setMeetingFilter(event.target.value)}
+              className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]"
+            >
+              <option value="all">All deacon groups</option>
+              {deaconGroups.map(([group]) => (
+                <option key={group} value={group}>
+                  {group}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-[var(--brand-border)] bg-white">
+            <div className="grid grid-cols-[1.2fr_1fr_1fr_1.4fr] gap-3 border-b border-[var(--brand-border)] bg-[var(--brand-soft)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand-muted)]">
+              <span>Member</span>
+              <span>Care group</span>
+              <span>Contact</span>
+              <span>Prayer / follow-up</span>
+            </div>
+            {meetingMembers.map((member) => (
+              <div
+                key={member.id}
+                className="grid grid-cols-1 gap-2 border-b border-[var(--brand-border)] px-4 py-4 text-sm last:border-0 lg:grid-cols-[1.2fr_1fr_1fr_1.4fr]"
+              >
+                <div>
+                  <p className="font-semibold text-[var(--brand-navy)]">{getMemberName(member)}</p>
+                  <p className="text-xs text-[var(--brand-muted)]">
+                    {member.householdLeaderId ? "Household member" : "Household representative"}
+                  </p>
+                </div>
+                <p className="text-[var(--brand-text)]">{member.deaconGroup ?? "Unassigned"}</p>
+                <p className="text-[var(--brand-text)]">{formatPhoneNumber(member.phone) || member.email || "Needs contact info"}</p>
+                <div className="space-y-1 text-[var(--brand-muted)]">
+                  {isBirthdayThisMonth(member) ? <p>Birthday this month: {member.birthdayMonthDay}</p> : null}
+                  {!member.deaconGroup ? <p>Assign deacon group.</p> : null}
+                  {!hasContactInfo(member) ? <p>Update contact information.</p> : null}
+                  {member.notes ? <p>{member.notes}</p> : null}
+                  {isBirthdayThisMonth(member) || !member.deaconGroup || !hasContactInfo(member) || member.notes ? null : (
+                    <p className="flex items-center gap-2 text-emerald-700">
+                      <CheckCircle2 className="h-4 w-4" />
+                      No obvious data-based follow-up.
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
