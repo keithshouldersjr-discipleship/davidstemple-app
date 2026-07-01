@@ -100,34 +100,33 @@ export function WeeklyBulletin({ bulletin }: { bulletin: WeeklyBulletin }) {
   return (
     <main className="bg-slate-200 py-4 sm:py-8">
       <article className="mx-auto max-w-6xl overflow-hidden bg-white shadow-2xl shadow-slate-950/15">
-        <header className="grid gap-5 bg-[linear-gradient(100deg,#fff_0%,#fff_30%,rgba(255,255,255,.88)_62%,rgba(234,242,249,.9)_100%)] px-5 py-6 sm:px-8 lg:grid-cols-[290px_1fr_250px] lg:items-center">
-          <div>
+        <header className="border-b border-[var(--brand-border)] bg-white px-5 py-5 sm:px-8">
+          <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-[180px_1fr] sm:items-center">
+          <div className="flex justify-center sm:justify-start">
             <Image
               src="/davids-temple-logo-color.png"
               alt="David's Temple Missionary Baptist Church"
               width={3600}
               height={3600}
               priority
-              className="h-auto w-64 max-w-full object-contain"
+              className="h-auto w-44 max-w-full object-contain sm:w-40"
             />
           </div>
-          <div>
-            <h1 className="max-w-2xl text-5xl font-black uppercase leading-none text-[var(--brand-navy)] sm:text-6xl">
-              David&apos;s Temple
-              <span className="block text-[var(--brand-burgundy)]">
+          <div className="border-t border-[var(--brand-border)] pt-4 text-center sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0 sm:text-left">
+            <h1 className="text-3xl font-black uppercase leading-tight text-[var(--brand-navy)] sm:text-4xl lg:text-5xl">
+              David&apos;s Temple{" "}
+              <span className="block text-[var(--brand-burgundy)] sm:inline">
                 Weekly Update
               </span>
             </h1>
-            <p className="mt-4 text-lg font-black uppercase tracking-wide text-[var(--brand-navy)]">
+            <p className="mt-3 text-sm font-black uppercase tracking-wide text-[var(--brand-navy)] sm:text-base">
               {bulletin.missionLine}
             </p>
-            <p className="mt-2 text-base text-slate-950">{bulletin.subtitle}</p>
+            <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-700 sm:mx-0 sm:text-base">
+              {bulletin.subtitle}
+            </p>
           </div>
-          <div
-            className="hidden h-32 rounded-lg bg-cover bg-center shadow-inner lg:block"
-            style={{ backgroundImage: "url('/church-life/speaking-at-podium.png')" }}
-            aria-label="David's Temple sanctuary"
-          />
+          </div>
         </header>
 
         <div className="bg-[var(--brand-burgundy)] px-4 py-2 text-center text-2xl font-black uppercase tracking-wide text-white">
