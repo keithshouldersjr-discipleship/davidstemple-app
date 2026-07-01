@@ -187,6 +187,16 @@ function getMemberName(member: MemberProfile) {
   return `${member.firstName} ${member.lastName}`.trim();
 }
 
+function getMemberOptionLabel(member: MemberProfile) {
+  const details = [
+    formatPhoneNumber(member.phone) || member.email,
+    member.status !== "active" ? member.status : undefined,
+    member.deaconGroup,
+  ].filter(Boolean);
+
+  return details.length ? `${getMemberName(member)} - ${details.join(" - ")}` : getMemberName(member);
+}
+
 function canEditMember(member: MemberProfile, currentUserEmail: string, role: DirectoryRole) {
   return (
     role === "owner" ||
@@ -865,7 +875,7 @@ export function MemberDirectoryDashboard() {
                     <option value="__clear__">Remove from household</option>
                     {memberOptions.map((member) => (
                       <option key={member.id} value={member.id}>
-                        {getMemberName(member)}
+                        {getMemberOptionLabel(member)}
                       </option>
                     ))}
                   </select>
@@ -1030,7 +1040,7 @@ export function MemberDirectoryDashboard() {
                   <option value="">Household leader / representative</option>
                   {memberOptions.map((member) => (
                     <option key={member.id} value={member.id}>
-                      {getMemberName(member)}
+                      {getMemberOptionLabel(member)}
                     </option>
                   ))}
                 </select>
@@ -1141,7 +1151,7 @@ export function MemberDirectoryDashboard() {
                       .filter((member) => member.id !== form.id)
                       .map((member) => (
                         <option key={member.id} value={member.id}>
-                          {getMemberName(member)}
+                          {getMemberOptionLabel(member)}
                         </option>
                       ))}
                   </select>

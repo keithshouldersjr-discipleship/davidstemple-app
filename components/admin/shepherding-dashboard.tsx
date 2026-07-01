@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 
 type ShepherdingTab = "overview" | "deacons" | "health" | "prayer";
 type OverviewDetailKey = "active" | "households" | "prayerList" | "birthdays";
-type HealthDetailKey = "contact" | "deacon" | "household" | "interests";
+type HealthDetailKey = "contact" | "deacon" | "household" | "interests" | "duplicates";
 type ContactType = "note" | "call" | "visit" | "text" | "card" | "prayer" | "other";
 
 type PrayerListFormState = {
@@ -57,6 +57,12 @@ type MemberContactLog = {
 type HouseholdGroup = {
   id: string;
   leader: MemberProfile;
+  members: MemberProfile[];
+};
+
+type DuplicateMemberGroup = {
+  id: string;
+  reason: string;
   members: MemberProfile[];
 };
 
@@ -101,6 +107,13 @@ const deaconGroupOptions = [
   "Deacon Wilbert Woodruff",
   "Deacon Ronald Peoples",
 ];
+
+const duplicateFirstNameAliases: Record<string, string> = {
+  reggie: "reginald",
+};
+
+const memberProfileSelect =
+  "id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,household_leader_id,care_status,care_notes,care_updated_at,status,notes";
 
 const emptyPrayerListForm: PrayerListFormState = {
   memberId: "",
@@ -190,8 +203,72 @@ function getMemberName(member: MemberProfile) {
   return `${member.firstName} ${member.lastName}`.trim();
 }
 
+function getMemberOptionLabel(member: MemberProfile) {
+  const details = [
+    formatPhoneNumber(member.phone) || member.email,
+    member.status !== "active" ? member.status : undefined,
+    member.deaconGroup,
+  ].filter(Boolean);
+
+  return details.length ? `${getMemberName(member)} - ${details.join(" - ")}` : getMemberName(member);
+}
+
 function hasContactInfo(member: MemberProfile) {
   return Boolean(member.phone || member.email);
+}
+
+function normalizeDuplicateText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\b(senior|junior)\b/g, (match) => (match === "senior" ? "sr" : "jr"))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getDuplicateNameKey(member: MemberProfile) {
+  const firstName = normalizeDuplicateText(member.firstName);
+  const canonicalFirstName = duplicateFirstNameAliases[firstName] ?? firstName;
+  const lastName = normalizeDuplicateText(member.lastName);
+
+  return `${canonicalFirstName} ${lastName}`.trim();
+}
+
+function getPossibleDuplicateGroups(members: MemberProfile[]) {
+  const candidateGroups: Array<{ reason: string; members: MemberProfile[] }> = [];
+  const groupedKeys = new Set<string>();
+
+  function addGroup(reason: string, groupedMembers: MemberProfile[]) {
+    const uniqueMembers = Array.from(new Map(groupedMembers.map((member) => [member.id, member])).values()).sort(
+      (first, second) => getMemberName(first).localeCompare(getMemberName(second)),
+    );
+    const groupKey = uniqueMembers.map((member) => member.id).sort().join("|");
+
+    if (uniqueMembers.length > 1 && !groupedKeys.has(groupKey)) {
+      groupedKeys.add(groupKey);
+      candidateGroups.push({ reason, members: uniqueMembers });
+    }
+  }
+
+  const byName = new Map<string, MemberProfile[]>();
+  const byPhone = new Map<string, MemberProfile[]>();
+  const byEmail = new Map<string, MemberProfile[]>();
+
+  for (const member of members) {
+    const nameKey = getDuplicateNameKey(member);
+    const phoneKey = (member.phone ?? "").replace(/\D/g, "");
+    const emailKey = member.email?.trim().toLowerCase();
+
+    if (nameKey) byName.set(nameKey, [...(byName.get(nameKey) ?? []), member]);
+    if (phoneKey.length >= 7) byPhone.set(phoneKey, [...(byPhone.get(phoneKey) ?? []), member]);
+    if (emailKey) byEmail.set(emailKey, [...(byEmail.get(emailKey) ?? []), member]);
+  }
+
+  for (const [nameKey, groupedMembers] of byName) addGroup(`Similar name: ${nameKey}`, groupedMembers);
+  for (const groupedMembers of byPhone.values()) addGroup("Shared phone number", groupedMembers);
+  for (const groupedMembers of byEmail.values()) addGroup("Shared email address", groupedMembers);
+
+  return candidateGroups.map((group, index) => ({ id: `${index}-${group.members.map((member) => member.id).join("-")}`, ...group }));
 }
 
 function getCurrentMonthDay() {
@@ -370,6 +447,8 @@ export function ShepherdingDashboard() {
   const [contactLogForm, setContactLogForm] = useState<ContactLogFormState>(emptyContactLogForm);
   const [selectedPrayerMemberId, setSelectedPrayerMemberId] = useState<string | null>(null);
   const [isSavingCare, setIsSavingCare] = useState(false);
+  const [savingHealthMemberId, setSavingHealthMemberId] = useState<string | null>(null);
+  const [healthSaveMessage, setHealthSaveMessage] = useState("");
 
   const loadContactLogs = useCallback(async () => {
     if (!supabase) return;
@@ -398,9 +477,7 @@ export function ShepherdingDashboard() {
 
     const { data, error } = await supabase
       .from("member_profiles")
-      .select(
-        "id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,household_leader_id,care_status,care_notes,care_updated_at,status,notes",
-      )
+      .select(memberProfileSelect)
       .order("last_name", { ascending: true })
       .order("first_name", { ascending: true });
 
@@ -460,6 +537,11 @@ export function ShepherdingDashboard() {
   const withoutMinistryInterest = useMemo(
     () => activeMembers.filter((member) => member.ministryInterests.length === 0),
     [activeMembers],
+  );
+  const possibleDuplicateGroups = useMemo(() => getPossibleDuplicateGroups(activeMembers), [activeMembers]);
+  const possibleDuplicateMembers = useMemo(
+    () => Array.from(new Map(possibleDuplicateGroups.flatMap((group) => group.members).map((member) => [member.id, member])).values()),
+    [possibleDuplicateGroups],
   );
 
   const householdGroups = useMemo(() => {
@@ -586,6 +668,7 @@ export function ShepherdingDashboard() {
         title: string;
         description: string;
         members: MemberProfile[];
+        duplicateGroups?: DuplicateMemberGroup[];
         emptyText: string;
       }
     > = {
@@ -613,10 +696,25 @@ export function ShepherdingDashboard() {
         members: withoutMinistryInterest,
         emptyText: "Every active member has at least one ministry interest.",
       },
+      duplicates: {
+        title: "Possible duplicate member profiles",
+        description: "Review active member records with similar names, shared phone numbers, or shared email addresses.",
+        members: possibleDuplicateMembers,
+        duplicateGroups: possibleDuplicateGroups,
+        emptyText: "No possible duplicate active member profiles were found.",
+      },
     };
 
     return details[healthDetailKey];
-  }, [healthDetailKey, withoutContact, withoutDeacon, withoutHousehold, withoutMinistryInterest]);
+  }, [
+    healthDetailKey,
+    possibleDuplicateGroups,
+    possibleDuplicateMembers,
+    withoutContact,
+    withoutDeacon,
+    withoutHousehold,
+    withoutMinistryInterest,
+  ]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -752,23 +850,53 @@ export function ShepherdingDashboard() {
       payload.ministry_interests = splitList(String(formData.get("ministryInterests") ?? ""));
     }
 
-    setIsSavingCare(true);
-    setMessage("");
-
-    const { error } = await supabase.from("member_profiles").update(payload).eq("id", memberId);
-
-    if (error) {
-      setMessage(error.message);
-    } else {
-      await loadMembers();
+    if (healthDetailKey === "duplicates") {
+      payload.first_name = String(formData.get("firstName") ?? "").trim();
+      payload.last_name = String(formData.get("lastName") ?? "").trim();
+      payload.phone = normalizePhoneNumber(String(formData.get("phone") ?? "")) || null;
+      payload.email = String(formData.get("email") ?? "").trim() || null;
     }
 
-    setIsSavingCare(false);
+    setSavingHealthMemberId(memberId);
+    setHealthSaveMessage("");
+    setMessage("");
+
+    const { data, error } = await supabase
+      .from("member_profiles")
+      .update(payload)
+      .eq("id", memberId)
+      .select(memberProfileSelect)
+      .single();
+
+    if (error) {
+      const persistenceMessage =
+        error.code === "PGRST116"
+          ? "No member record was updated. Please confirm your account has directory admin permission, then try again."
+          : error.message;
+
+      setHealthSaveMessage(persistenceMessage);
+      setMessage(persistenceMessage);
+    } else {
+      const updatedMember = toMemberProfile(data as SupabaseMemberProfileRow);
+
+      setMembers((currentMembers) =>
+        currentMembers.map((member) => (member.id === updatedMember.id ? updatedMember : member)),
+      );
+      await loadMembers();
+      setHealthSaveMessage(`Saved ${getMemberName(updatedMember)}.`);
+    }
+
+    setSavingHealthMemberId(null);
   }
 
   function openPrayerMember(member: MemberProfile) {
     setSelectedPrayerMemberId(member.id);
     setContactLogForm(emptyContactLogForm);
+  }
+
+  function openHealthDetail(key: HealthDetailKey) {
+    setHealthSaveMessage("");
+    setHealthDetailKey(key);
   }
 
   if (!supabase) {
@@ -1080,33 +1208,40 @@ export function ShepherdingDashboard() {
               These counts and lists only include active members.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <MetricCard
               icon={<Phone className="h-5 w-5" />}
               label="Active missing phone/email"
               value={withoutContact.length}
               tone="amber"
-              onClick={() => setHealthDetailKey("contact")}
+              onClick={() => openHealthDetail("contact")}
             />
             <MetricCard
               icon={<HeartHandshake className="h-5 w-5" />}
               label="Active missing deacon"
               value={withoutDeacon.length}
               tone="amber"
-              onClick={() => setHealthDetailKey("deacon")}
+              onClick={() => openHealthDetail("deacon")}
             />
             <MetricCard
               icon={<Home className="h-5 w-5" />}
               label="Active without household"
               value={withoutHousehold.length}
               tone="burgundy"
-              onClick={() => setHealthDetailKey("household")}
+              onClick={() => openHealthDetail("household")}
             />
             <MetricCard
               icon={<ClipboardList className="h-5 w-5" />}
               label="Active without interests"
               value={withoutMinistryInterest.length}
-              onClick={() => setHealthDetailKey("interests")}
+              onClick={() => openHealthDetail("interests")}
+            />
+            <MetricCard
+              icon={<Users className="h-5 w-5" />}
+              label="Possible duplicate people"
+              value={possibleDuplicateGroups.length}
+              tone="green"
+              onClick={() => openHealthDetail("duplicates")}
             />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
@@ -1310,7 +1445,48 @@ export function ShepherdingDashboard() {
               </div>
             </CardHeader>
             <CardContent className="max-h-[68vh] overflow-y-auto p-0">
-              {healthDetail.members.length ? (
+              {healthSaveMessage ? (
+                <div className="border-b border-[var(--brand-border)] bg-[var(--brand-soft)] px-4 py-3 text-sm font-medium text-[var(--brand-navy)]">
+                  {healthSaveMessage}
+                </div>
+              ) : null}
+              {healthDetailKey === "duplicates" && healthDetail.duplicateGroups?.length ? (
+                <div className="divide-y divide-[var(--brand-border)]">
+                  {healthDetail.duplicateGroups.map((group) => (
+                    <div key={group.id} className="p-4">
+                      <p className="text-sm font-semibold text-[var(--brand-navy)]">{group.reason}</p>
+                      <div className="mt-3 space-y-3">
+                        {group.members.map((member) => (
+                          <form
+                            key={member.id}
+                            onSubmit={handleSaveHealthFix}
+                            className="grid gap-3 rounded-2xl border border-[var(--brand-border)] bg-white p-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-center"
+                          >
+                            <input type="hidden" name="memberId" value={member.id} />
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <Input name="firstName" defaultValue={member.firstName} placeholder="First name" required />
+                              <Input name="lastName" defaultValue={member.lastName} placeholder="Last name" required />
+                            </div>
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <Input name="phone" defaultValue={formatPhoneNumber(member.phone)} placeholder="Phone" />
+                              <Input name="email" type="email" defaultValue={member.email ?? ""} placeholder="Email" />
+                            </div>
+                            <div className="flex flex-col gap-2 lg:items-end">
+                              <p className="text-xs text-[var(--brand-muted)]">
+                                {member.deaconGroup ?? "No deacon group"} · {member.status}
+                              </p>
+                              <Button type="submit" disabled={Boolean(savingHealthMemberId)}>
+                                {savingHealthMemberId === member.id ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                                Save
+                              </Button>
+                            </div>
+                          </form>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : healthDetail.members.length ? (
                 <div className="divide-y divide-[var(--brand-border)]">
                   {healthDetail.members.map((member) => (
                     <form
@@ -1359,7 +1535,7 @@ export function ShepherdingDashboard() {
                             .filter((option) => option.id !== member.id)
                             .map((option) => (
                               <option key={option.id} value={option.id}>
-                                {getMemberName(option)}
+                                {getMemberOptionLabel(option)}
                               </option>
                             ))}
                         </select>
@@ -1373,8 +1549,8 @@ export function ShepherdingDashboard() {
                         />
                       ) : null}
 
-                      <Button type="submit" disabled={isSavingCare}>
-                        {isSavingCare ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                      <Button type="submit" disabled={Boolean(savingHealthMemberId)}>
+                        {savingHealthMemberId === member.id ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                         Save
                       </Button>
                     </form>
