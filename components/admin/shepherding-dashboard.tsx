@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 
 type ShepherdingTab = "overview" | "deacons" | "health" | "prayer";
 type OverviewDetailKey = "active" | "households" | "prayerList" | "birthdays";
+type HealthDetailKey = "contact" | "deacon" | "household" | "interests";
 type ContactType = "note" | "call" | "visit" | "text" | "card" | "prayer" | "other";
 
 type PrayerListFormState = {
@@ -89,6 +90,18 @@ const contactTypeLabels: Record<ContactType, string> = {
   other: "Other",
 };
 
+const deaconGroupOptions = [
+  "Deacon Bobby Shoulders",
+  "Deacon Bobby McDonald",
+  "Deacon Maurice Pryor",
+  "Deacon Reggie Battles",
+  "Deacon Walter Hamilton",
+  "Deacon Derrick Ward",
+  "Deacon Billy Hammer",
+  "Deacon Wilbert Woodruff",
+  "Deacon Ronald Peoples",
+];
+
 const emptyPrayerListForm: PrayerListFormState = {
   memberId: "",
   careStatus: "sick_shut_in",
@@ -117,6 +130,27 @@ function formatPhoneNumber(value?: string) {
   }
 
   return value ?? "";
+}
+
+function normalizePhoneNumber(value: string) {
+  const digits = value.replace(/\D/g, "");
+
+  if (digits.length === 10) {
+    return formatPhoneNumber(digits);
+  }
+
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return formatPhoneNumber(digits);
+  }
+
+  return value.trim();
+}
+
+function splitList(value: string) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function toMemberProfile(row: SupabaseMemberProfileRow): MemberProfile {
@@ -330,6 +364,7 @@ export function ShepherdingDashboard() {
   const [members, setMembers] = useState<MemberProfile[]>([]);
   const [activeTab, setActiveTab] = useState<ShepherdingTab>("overview");
   const [overviewDetailKey, setOverviewDetailKey] = useState<OverviewDetailKey | null>(null);
+  const [healthDetailKey, setHealthDetailKey] = useState<HealthDetailKey | null>(null);
   const [contactLogs, setContactLogs] = useState<MemberContactLog[]>([]);
   const [prayerListForm, setPrayerListForm] = useState<PrayerListFormState>(emptyPrayerListForm);
   const [contactLogForm, setContactLogForm] = useState<ContactLogFormState>(emptyContactLogForm);
@@ -542,6 +577,47 @@ export function ShepherdingDashboard() {
     return details[overviewDetailKey];
   }, [activeMembers, birthdaysThisMonth, householdGroups, overviewDetailKey, prayerListMembers]);
 
+  const healthDetail = useMemo(() => {
+    if (!healthDetailKey) return null;
+
+    const details: Record<
+      HealthDetailKey,
+      {
+        title: string;
+        description: string;
+        members: MemberProfile[];
+        emptyText: string;
+      }
+    > = {
+      contact: {
+        title: "Active members missing contact info",
+        description: "Add a phone number or email address to close this gap.",
+        members: withoutContact,
+        emptyText: "Every active member has phone or email listed.",
+      },
+      deacon: {
+        title: "Active members missing deacon assignment",
+        description: "Assign each member to a deacon care group.",
+        members: withoutDeacon,
+        emptyText: "Every active member has a deacon assignment.",
+      },
+      household: {
+        title: "Active members without household grouping",
+        description: "Connect members to the household representative when they belong to another household.",
+        members: withoutHousehold,
+        emptyText: "Every active member is represented in a household grouping.",
+      },
+      interests: {
+        title: "Active members without ministry interests",
+        description: "Add comma-separated ministry interests where known.",
+        members: withoutMinistryInterest,
+        emptyText: "Every active member has at least one ministry interest.",
+      },
+    };
+
+    return details[healthDetailKey];
+  }, [healthDetailKey, withoutContact, withoutDeacon, withoutHousehold, withoutMinistryInterest]);
+
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -637,6 +713,54 @@ export function ShepherdingDashboard() {
     } else {
       setContactLogForm(emptyContactLogForm);
       await loadContactLogs();
+    }
+
+    setIsSavingCare(false);
+  }
+
+  async function handleSaveHealthFix(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!supabase || !healthDetailKey) return;
+
+    const formData = new FormData(event.currentTarget);
+    const memberId = String(formData.get("memberId") ?? "");
+
+    if (!memberId) return;
+
+    const payload: Record<string, string | string[] | null> = {};
+
+    if (healthDetailKey === "contact") {
+      const phone = normalizePhoneNumber(String(formData.get("phone") ?? ""));
+      const email = String(formData.get("email") ?? "").trim();
+
+      payload.phone = phone || null;
+      payload.email = email || null;
+    }
+
+    if (healthDetailKey === "deacon") {
+      payload.deacon_group = String(formData.get("deaconGroup") ?? "").trim() || null;
+    }
+
+    if (healthDetailKey === "household") {
+      const householdLeaderId = String(formData.get("householdLeaderId") ?? "");
+
+      payload.household_leader_id = householdLeaderId && householdLeaderId !== memberId ? householdLeaderId : null;
+    }
+
+    if (healthDetailKey === "interests") {
+      payload.ministry_interests = splitList(String(formData.get("ministryInterests") ?? ""));
+    }
+
+    setIsSavingCare(true);
+    setMessage("");
+
+    const { error } = await supabase.from("member_profiles").update(payload).eq("id", memberId);
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      await loadMembers();
     }
 
     setIsSavingCare(false);
@@ -957,10 +1081,33 @@ export function ShepherdingDashboard() {
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard icon={<Phone className="h-5 w-5" />} label="Active missing phone/email" value={withoutContact.length} tone="amber" />
-            <MetricCard icon={<HeartHandshake className="h-5 w-5" />} label="Active missing deacon" value={withoutDeacon.length} tone="amber" />
-            <MetricCard icon={<Home className="h-5 w-5" />} label="Active without household" value={withoutHousehold.length} tone="burgundy" />
-            <MetricCard icon={<ClipboardList className="h-5 w-5" />} label="Active without interests" value={withoutMinistryInterest.length} />
+            <MetricCard
+              icon={<Phone className="h-5 w-5" />}
+              label="Active missing phone/email"
+              value={withoutContact.length}
+              tone="amber"
+              onClick={() => setHealthDetailKey("contact")}
+            />
+            <MetricCard
+              icon={<HeartHandshake className="h-5 w-5" />}
+              label="Active missing deacon"
+              value={withoutDeacon.length}
+              tone="amber"
+              onClick={() => setHealthDetailKey("deacon")}
+            />
+            <MetricCard
+              icon={<Home className="h-5 w-5" />}
+              label="Active without household"
+              value={withoutHousehold.length}
+              tone="burgundy"
+              onClick={() => setHealthDetailKey("household")}
+            />
+            <MetricCard
+              icon={<ClipboardList className="h-5 w-5" />}
+              label="Active without interests"
+              value={withoutMinistryInterest.length}
+              onClick={() => setHealthDetailKey("interests")}
+            />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <SimpleList
@@ -1128,6 +1275,113 @@ export function ShepherdingDashboard() {
                 overviewDetail.members.map((member) => <MemberDetailRow key={member.id} member={member} />)
               ) : (
                 <p className="p-5 text-sm text-[var(--brand-muted)]">{overviewDetail.emptyText}</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
+      {healthDetail ? (
+        <div
+          className="admin-no-print fixed inset-0 z-50 flex items-end justify-center bg-slate-950/55 p-3 sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="health-detail-title"
+          onClick={() => setHealthDetailKey(null)}
+        >
+          <Card
+            className="max-h-[88vh] w-full max-w-5xl overflow-hidden"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <CardHeader className="border-b border-[var(--brand-border)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <CardTitle id="health-detail-title">{healthDetail.title}</CardTitle>
+                  <p className="mt-1 text-sm text-[var(--brand-muted)]">{healthDetail.description}</p>
+                </div>
+                <button
+                  type="button"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--brand-border)] text-[var(--brand-muted)] hover:bg-[var(--brand-soft)]"
+                  aria-label="Close data health details"
+                  onClick={() => setHealthDetailKey(null)}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent className="max-h-[68vh] overflow-y-auto p-0">
+              {healthDetail.members.length ? (
+                <div className="divide-y divide-[var(--brand-border)]">
+                  {healthDetail.members.map((member) => (
+                    <form
+                      key={member.id}
+                      onSubmit={handleSaveHealthFix}
+                      className="grid gap-3 p-4 lg:grid-cols-[minmax(180px,0.8fr)_minmax(0,1.7fr)_auto] lg:items-center"
+                    >
+                      <input type="hidden" name="memberId" value={member.id} />
+                      <div>
+                        <p className="font-semibold text-[var(--brand-navy)]">{getMemberName(member)}</p>
+                        <p className="text-xs text-[var(--brand-muted)]">
+                          {member.deaconGroup ?? "No deacon group"} · {member.birthdayMonthDay ?? "No birthday"}
+                        </p>
+                      </div>
+
+                      {healthDetailKey === "contact" ? (
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <Input name="phone" defaultValue={formatPhoneNumber(member.phone)} placeholder="Phone" />
+                          <Input name="email" type="email" defaultValue={member.email ?? ""} placeholder="Email" />
+                        </div>
+                      ) : null}
+
+                      {healthDetailKey === "deacon" ? (
+                        <select
+                          name="deaconGroup"
+                          defaultValue={member.deaconGroup ?? ""}
+                          className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]"
+                        >
+                          <option value="">Select deacon group</option>
+                          {deaconGroupOptions.map((group) => (
+                            <option key={group} value={group}>
+                              {group}
+                            </option>
+                          ))}
+                        </select>
+                      ) : null}
+
+                      {healthDetailKey === "household" ? (
+                        <select
+                          name="householdLeaderId"
+                          defaultValue={member.householdLeaderId ?? ""}
+                          className="h-11 rounded-full border border-[var(--brand-border)] bg-white px-4 text-sm text-[var(--brand-text)]"
+                        >
+                          <option value="">Select household representative</option>
+                          {activeMembers
+                            .filter((option) => option.id !== member.id)
+                            .map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {getMemberName(option)}
+                              </option>
+                            ))}
+                        </select>
+                      ) : null}
+
+                      {healthDetailKey === "interests" ? (
+                        <Input
+                          name="ministryInterests"
+                          defaultValue={member.ministryInterests.join(", ")}
+                          placeholder="Ministry interests"
+                        />
+                      ) : null}
+
+                      <Button type="submit" disabled={isSavingCare}>
+                        {isSavingCare ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        Save
+                      </Button>
+                    </form>
+                  ))}
+                </div>
+              ) : (
+                <p className="p-5 text-sm text-[var(--brand-muted)]">{healthDetail.emptyText}</p>
               )}
             </CardContent>
           </Card>
