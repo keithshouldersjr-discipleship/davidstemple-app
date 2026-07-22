@@ -1,4 +1,5 @@
 import { MemberDirectoryDashboard } from "@/components/admin/member-directory-dashboard";
+import Link from "next/link";
 
 export default function AdminPage() {
   return (
@@ -14,6 +15,9 @@ export default function AdminPage() {
           Sign in to manage member profiles, update contact information, filter
           the directory, and prepare a clean printable directory view.
         </p>
+        <Link className="inline-flex rounded-full border border-[var(--brand-navy)]/15 bg-white px-5 py-2.5 text-sm font-medium text-[var(--brand-navy)] transition hover:border-[var(--brand-burgundy)]/35 hover:bg-[var(--brand-burgundy-soft)]" href="/admin/operations">
+          Open ministry health dashboard
+        </Link>
       </div>
       <MemberDirectoryDashboard />
     </main>

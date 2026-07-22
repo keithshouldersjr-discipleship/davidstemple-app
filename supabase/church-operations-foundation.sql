@@ -1,0 +1,10 @@
+-- Canonical migration lives in the Watchcare repository because its schema owns
+-- organizations, profiles, memberships, and members. Keep this copy synchronized.
+--
+-- Apply in this order:
+-- 1. watchcare/supabase/watchcare-schema.sql
+-- 2. watchcare/supabase/import-davids-temple-member-directory.sql
+-- 3. watchcare/supabase/church-operations-foundation.sql
+--
+-- This file intentionally documents the contract from the website repository;
+-- execute the canonical migration above to avoid schema drift.

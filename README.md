@@ -47,6 +47,14 @@ Supabase Auth using the same email address. The import template is
 
 The app falls back to `lib/mock-data.ts` if Supabase is not configured or if a read fails.
 
+## Shared Church Operations
+
+The target architecture and migration plan are documented in
+`docs/church-management-architecture.md`. New attendance and serving features use
+Watchcare's organization-aware `public.members` model. Apply the canonical migration
+from `watchcare/supabase/church-operations-foundation.sql`, then open
+`/admin/operations` for the first shared ministry-health dashboard.
+
 ## Vercel Environment Variables
 
 In Vercel, add the same variables under:

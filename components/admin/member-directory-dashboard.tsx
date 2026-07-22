@@ -27,6 +27,11 @@ import {
   createSupabaseBrowserClient,
   type SupabaseMemberProfileRow,
 } from "@/lib/supabase";
+import {
+  listMemberDirectoryEntries,
+  saveMemberDirectoryEntry,
+  updateMemberDirectoryEntry,
+} from "@/lib/member-directory-repository";
 import type { MemberProfile, MemberStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -346,25 +351,18 @@ export function MemberDirectoryDashboard() {
     setIsLoading(true);
     setMessage("");
 
-    const { data, error } = await supabase
-      .from("member_profiles")
-      .select(
-        "id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,household_leader_id,status,notes",
-      )
-      .order("last_name", { ascending: true })
-      .order("first_name", { ascending: true });
-
-    if (error) {
-      setMessage(
-        "I could not load the directory. Make sure the member directory SQL has been run and your email is listed in admin_users.",
-      );
-      setMembers([]);
-    } else {
-      const nextMembers = (data as SupabaseMemberProfileRow[]).map(toMemberProfile);
+    try {
+      const data = await listMemberDirectoryEntries(supabase);
+      const nextMembers = data.map(toMemberProfile);
       const nextMemberIds = new Set(nextMembers.map((member) => member.id));
 
       setMembers(nextMembers);
       setSelectedMemberIds((current) => current.filter((id) => nextMemberIds.has(id)));
+    } catch {
+      setMessage(
+        "I could not load the canonical directory. Run the member cutover SQL and confirm your directory access.",
+      );
+      setMembers([]);
     }
 
     setIsLoading(false);
@@ -476,30 +474,29 @@ export function MemberDirectoryDashboard() {
 
     const payload = {
       id: form.id,
-      first_name: form.firstName.trim(),
-      last_name: form.lastName.trim(),
-      birthday_month_day: form.birthdayMonthDay.trim() || null,
+      firstName: form.firstName,
+      lastName: form.lastName,
+      birthdayMonthDay: form.birthdayMonthDay,
       phone: normalizePhoneNumber(form.phone) || null,
       email: form.email.trim() || null,
-      spouse_name: form.spouseName.trim() || null,
+      spouseName: form.spouseName,
       children: splitList(form.children),
-      ministry_interests: splitList(form.ministryInterests),
-      deacon_group: form.deaconGroup.trim() || null,
-      household_leader_id:
+      ministryInterests: splitList(form.ministryInterests),
+      deaconGroup: form.deaconGroup,
+      householdLeaderId:
         form.householdLeaderId && form.householdLeaderId !== form.id ? form.householdLeaderId : null,
       status: form.status,
       notes: form.notes.trim() || null,
     };
 
-    const { error } = await supabase.from("member_profiles").upsert(payload).select("id").single();
-
-    if (error) {
-      setMessage(error.message);
-    } else {
+    try {
+      await saveMemberDirectoryEntry(supabase, payload);
       setForm(emptyForm);
       setIsMemberFormModalOpen(false);
       setProfileModalMode("view");
       await loadMembers();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "The member could not be saved.");
     }
 
     setIsSaving(false);
@@ -597,13 +594,10 @@ export function MemberDirectoryDashboard() {
         payload.household_leader_id = null;
       }
 
-      const { error } = await supabase
-        .from("member_profiles")
-        .update(payload)
-        .eq("id", member.id);
-
-      if (error) {
-        setMessage(error.message);
+      try {
+        await updateMemberDirectoryEntry(supabase, member.id, payload);
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "The selected members could not be updated.");
         setIsSaving(false);
         return;
       }

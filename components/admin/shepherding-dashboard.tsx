@@ -24,6 +24,12 @@ import {
   type SupabaseMemberContactLogRow,
   type SupabaseMemberProfileRow,
 } from "@/lib/supabase";
+import {
+  addMemberDirectoryContactLog,
+  listMemberDirectoryContactLogs,
+  listMemberDirectoryEntries,
+  updateMemberDirectoryEntry,
+} from "@/lib/member-directory-repository";
 import type { CareStatus, MemberProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -111,9 +117,6 @@ const deaconGroupOptions = [
 const duplicateFirstNameAliases: Record<string, string> = {
   reggie: "reginald",
 };
-
-const memberProfileSelect =
-  "id,first_name,last_name,birthday_month_day,phone,email,spouse_name,children,ministry_interests,deacon_group,household_leader_id,care_status,care_notes,care_updated_at,status,notes";
 
 const emptyPrayerListForm: PrayerListFormState = {
   memberId: "",
@@ -453,20 +456,13 @@ export function ShepherdingDashboard() {
   const loadContactLogs = useCallback(async () => {
     if (!supabase) return;
 
-    const { data, error } = await supabase
-      .from("member_contact_logs")
-      .select("id,member_id,contact_type,notes,contacted_at,created_by,created_at")
-      .order("contacted_at", { ascending: false });
-
-    if (error) {
-      if (error.code !== "42P01") {
-        setMessage("I could not load the prayer list contact log.");
-      }
+    try {
+      const data = await listMemberDirectoryContactLogs(supabase);
+      setContactLogs(data.map(toMemberContactLog));
+    } catch {
+      setMessage("I could not load the canonical prayer-list contact log.");
       setContactLogs([]);
-      return;
     }
-
-    setContactLogs((data as SupabaseMemberContactLogRow[]).map(toMemberContactLog));
   }, [supabase]);
 
   const loadMembers = useCallback(async () => {
@@ -475,18 +471,13 @@ export function ShepherdingDashboard() {
     setIsLoading(true);
     setMessage("");
 
-    const { data, error } = await supabase
-      .from("member_profiles")
-      .select(memberProfileSelect)
-      .order("last_name", { ascending: true })
-      .order("first_name", { ascending: true });
-
-    if (error) {
-      setMessage("I could not load the member data for the shepherding dashboard.");
-      setMembers([]);
-    } else {
-      setMembers((data as SupabaseMemberProfileRow[]).map(toMemberProfile));
+    try {
+      const data = await listMemberDirectoryEntries(supabase);
+      setMembers(data.map(toMemberProfile));
       await loadContactLogs();
+    } catch {
+      setMessage("I could not load canonical member data for the shepherding dashboard.");
+      setMembers([]);
     }
 
     setIsLoading(false);
@@ -745,20 +736,16 @@ export function ShepherdingDashboard() {
     setIsSavingCare(true);
     setMessage("");
 
-    const { error } = await supabase
-      .from("member_profiles")
-      .update({
+    try {
+      await updateMemberDirectoryEntry(supabase, prayerListForm.memberId, {
         care_status: prayerListForm.careStatus,
         care_notes: prayerListForm.careNotes.trim() || null,
         care_updated_at: new Date().toISOString(),
-      })
-      .eq("id", prayerListForm.memberId);
-
-    if (error) {
-      setMessage(error.message);
-    } else {
+      });
       setPrayerListForm(emptyPrayerListForm);
       await loadMembers();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "The prayer-list member could not be saved.");
     }
 
     setIsSavingCare(false);
@@ -770,20 +757,16 @@ export function ShepherdingDashboard() {
     setIsSavingCare(true);
     setMessage("");
 
-    const { error } = await supabase
-      .from("member_profiles")
-      .update({
+    try {
+      await updateMemberDirectoryEntry(supabase, memberId, {
         care_status: "none",
         care_notes: null,
         care_updated_at: new Date().toISOString(),
-      })
-      .eq("id", memberId);
-
-    if (error) {
-      setMessage(error.message);
-    } else {
+      });
       setSelectedPrayerMemberId(null);
       await loadMembers();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "The prayer-list member could not be removed.");
     }
 
     setIsSavingCare(false);
@@ -798,19 +781,17 @@ export function ShepherdingDashboard() {
     setMessage("");
 
     const contactedAt = new Date(`${contactLogForm.contactedAt}T12:00:00`).toISOString();
-    const { error } = await supabase.from("member_contact_logs").insert({
-      member_id: selectedPrayerMember.id,
-      contact_type: contactLogForm.contactType,
-      notes: contactLogForm.notes.trim(),
-      contacted_at: contactedAt,
-      created_by: currentUserEmail || null,
-    });
-
-    if (error) {
-      setMessage(error.message);
-    } else {
+    try {
+      await addMemberDirectoryContactLog(supabase, {
+        memberId: selectedPrayerMember.id,
+        contactType: contactLogForm.contactType,
+        notes: contactLogForm.notes,
+        contactedAt,
+      });
       setContactLogForm(emptyContactLogForm);
       await loadContactLogs();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "The contact note could not be saved.");
     }
 
     setIsSavingCare(false);
@@ -861,29 +842,17 @@ export function ShepherdingDashboard() {
     setHealthSaveMessage("");
     setMessage("");
 
-    const { data, error } = await supabase
-      .from("member_profiles")
-      .update(payload)
-      .eq("id", memberId)
-      .select(memberProfileSelect)
-      .single();
-
-    if (error) {
-      const persistenceMessage =
-        error.code === "PGRST116"
-          ? "No member record was updated. Please confirm your account has directory admin permission, then try again."
-          : error.message;
-
+    const memberName = members.find((member) => member.id === memberId);
+    try {
+      await updateMemberDirectoryEntry(supabase, memberId, payload);
+      await loadMembers();
+      setHealthSaveMessage(`Saved ${memberName ? getMemberName(memberName) : "member"}.`);
+    } catch (error) {
+      const persistenceMessage = error instanceof Error
+        ? error.message
+        : "No member record was updated. Please confirm your directory permission, then try again.";
       setHealthSaveMessage(persistenceMessage);
       setMessage(persistenceMessage);
-    } else {
-      const updatedMember = toMemberProfile(data as SupabaseMemberProfileRow);
-
-      setMembers((currentMembers) =>
-        currentMembers.map((member) => (member.id === updatedMember.id ? updatedMember : member)),
-      );
-      await loadMembers();
-      setHealthSaveMessage(`Saved ${getMemberName(updatedMember)}.`);
     }
 
     setSavingHealthMemberId(null);

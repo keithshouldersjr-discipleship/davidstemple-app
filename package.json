@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:canonical-members": "node scripts/check-canonical-member-access.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",
