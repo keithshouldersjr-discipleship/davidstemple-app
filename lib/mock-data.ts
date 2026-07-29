@@ -660,7 +660,7 @@ export function getMockAssistantResponse(prompt: string) {
   }
 
   if (normalized.includes("connected")) {
-    return "Start with the Resources page for visit details, ministry updates, care, serving, and giving links. You can also contact the church office for personal next steps.";
+    return "Start with the Resources page for visit details, ministry updates, care, and serving links. You can also contact the church office for personal next steps.";
   }
 
   return "I do not have that information yet. Please contact the church office or check official David's Temple resources for the most current details.";

@@ -10,7 +10,7 @@ export default function AskPage() {
         <h1 className="text-4xl font-semibold text-[var(--brand-navy)]">Ask a church question</h1>
         <p className="text-lg leading-8 text-[var(--brand-muted)]">
           Find clear next steps for service times, Sunday School, church events,
-          serving, care requests, giving, and getting connected.
+          serving, care requests, and getting connected.
         </p>
       </div>
       <ChatPanel />

@@ -5,6 +5,7 @@
 insert into public.admin_users (email, role)
 values
   ('keithshouldersjr@gmail.com', 'owner'),
+  ('skoleceia@gmail.com', 'leader'),
   ('donald.wicks@gmail.com', 'admin'),
   ('jenniferwicks24@gmail.com', 'admin'),
   ('shellia@bellsouth.net', 'admin'),

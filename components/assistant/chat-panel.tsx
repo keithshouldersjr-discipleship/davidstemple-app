@@ -10,7 +10,7 @@ import type { ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const introMessage =
-  "Welcome to ask.dt. Ask me about service times, Sunday School, church events, serving opportunities, care requests, giving, or how to get connected at David's Temple.";
+  "Welcome to ask.dt. Ask me about service times, Sunday School, church events, serving opportunities, care requests, or how to get connected at David's Temple.";
 
 type ChatPanelProps = {
   compact?: boolean;

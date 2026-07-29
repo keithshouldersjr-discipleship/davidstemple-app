@@ -4,7 +4,6 @@ export type ResourceCategory =
   | "Grow"
   | "Serve"
   | "Care"
-  | "Give"
   | "Ministry Updates";
 
 export type Resource = {

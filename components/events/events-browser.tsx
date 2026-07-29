@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Clock, Mail, MapPin, Phone, UserRound, X } from "lucide-react";
 import { InterestButton } from "@/components/connect/interest-button";
+import { AddToCalendarButton } from "@/components/events/add-to-calendar-button";
 import { EventRequestButton } from "@/components/events/event-request-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,55 +34,62 @@ export function EventsBrowser({ events }: EventsBrowserProps) {
       <div className="max-h-[72vh] overflow-y-auto pr-1">
         <div className="grid gap-4 md:grid-cols-2">
           {events.map((event) => (
-            <button
+            <Card
               key={event.id}
-              type="button"
-              className="text-left"
-              onClick={() => setSelectedEventId(event.id)}
+              className="h-full transition hover:-translate-y-1 hover:border-[var(--brand-burgundy)]/35 hover:shadow-md"
             >
-              <Card className="h-full transition hover:-translate-y-1 hover:border-[var(--brand-burgundy)]/35 hover:shadow-md">
+              <button
+                type="button"
+                className="w-full text-left"
+                aria-label={`View details for ${event.title}`}
+                onClick={() => setSelectedEventId(event.id)}
+              >
                 <CardHeader>
                   <CardTitle>{event.title}</CardTitle>
                   <p className="text-sm leading-6 text-[var(--brand-muted)]">{event.description}</p>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-3 text-sm text-[var(--brand-muted)]">
-                    <span className="flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 text-[var(--brand-burgundy)]" />
-                      {event.date}
+              </button>
+              <CardContent className="space-y-4">
+                <div className="grid gap-3 text-sm text-[var(--brand-muted)]">
+                  <span className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-[var(--brand-burgundy)]" />
+                    {event.date}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-[var(--brand-burgundy)]" />
+                    {event.time}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-[var(--brand-burgundy)]" />
+                    {event.location}
+                  </span>
+                </div>
+                {event.requestVolunteers && event.supportNeeded?.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {event.supportNeeded.map((item) => (
+                      <span key={item} className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-xs font-medium text-[var(--brand-navy)]">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {event.leaderName || event.leaderEmail || event.leaderPhone ? (
+                  <div className="rounded-2xl border border-[var(--brand-border)] bg-[var(--brand-soft)] p-3 text-sm">
+                    <span className="flex items-center gap-2 font-medium text-[var(--brand-navy)]">
+                      <UserRound className="h-4 w-4 text-[var(--brand-burgundy)]" />
+                      {event.leaderName ?? "Team leader"}
                     </span>
-                    <span className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-[var(--brand-burgundy)]" />
-                      {event.time}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-[var(--brand-burgundy)]" />
-                      {event.location}
+                    <span className="mt-1 block text-[var(--brand-muted)]">
+                      Contact this leader to help support the event.
                     </span>
                   </div>
-                  {event.requestVolunteers && event.supportNeeded?.length ? (
-                    <div className="flex flex-wrap gap-2">
-                      {event.supportNeeded.map((item) => (
-                        <span key={item} className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-xs font-medium text-[var(--brand-navy)]">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                  {event.leaderName || event.leaderEmail || event.leaderPhone ? (
-                    <div className="rounded-2xl border border-[var(--brand-border)] bg-[var(--brand-soft)] p-3 text-sm">
-                      <span className="flex items-center gap-2 font-medium text-[var(--brand-navy)]">
-                        <UserRound className="h-4 w-4 text-[var(--brand-burgundy)]" />
-                        {event.leaderName ?? "Team leader"}
-                      </span>
-                      <span className="mt-1 block text-[var(--brand-muted)]">
-                        Contact this leader to help support the event.
-                      </span>
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
-            </button>
+                ) : null}
+                <AddToCalendarButton
+                  event={event}
+                  className="w-full"
+                />
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>

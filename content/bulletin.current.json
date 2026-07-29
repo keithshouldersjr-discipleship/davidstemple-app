@@ -26,7 +26,6 @@
   ],
   "importantLinks": [
     { "label": "Plan Your Visit", "url": "/resources#visit", "icon": "users" },
-    { "label": "Give Online", "url": "/resources#give", "icon": "heart" },
     { "label": "DT Social App", "url": "/dtsocial/", "icon": "phone" },
     { "label": "Volunteer Sign-Up", "url": "/serve", "icon": "hands" },
     { "label": "Church Website", "url": "/", "icon": "globe" }
