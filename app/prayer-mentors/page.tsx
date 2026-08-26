@@ -61,7 +61,7 @@ export default function PrayerMentorsPage() {
         </div>
 
         <div className="mt-8 rounded-2xl border border-[#F4D5DC] bg-[var(--brand-burgundy-soft)] px-5 py-4 text-sm leading-6 text-[var(--brand-text)]">
-          <strong className="text-[var(--brand-burgundy)]">Before a match is made:</strong> ministry leaders review each signup, complete required screening steps, confirm parent or guardian consent, and consider interests, availability, and mentor capacity. A mentor may support up to three mentees.
+          <strong className="text-[var(--brand-burgundy)]">Before a match is made:</strong> ministry leaders review each signup, confirm member details, complete required screening steps, verify parent or guardian consent, and consider mentor capacity. A mentor may support up to three mentees.
         </div>
 
         <div className="mt-8">

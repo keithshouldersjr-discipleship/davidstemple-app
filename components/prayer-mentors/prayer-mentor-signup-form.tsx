@@ -9,14 +9,8 @@ type SubmitState = "idle" | "submitting" | "success";
 
 const inputClass =
   "mt-2 h-12 w-full rounded-xl border border-[var(--brand-border)] bg-white px-4 text-base font-normal text-[var(--brand-text)] outline-none transition placeholder:text-slate-400 focus:border-[var(--brand-burgundy)] focus:ring-4 focus:ring-[var(--brand-burgundy)]/10";
-const textareaClass =
-  "mt-2 min-h-28 w-full resize-y rounded-xl border border-[var(--brand-border)] bg-white px-4 py-3 text-base font-normal text-[var(--brand-text)] outline-none transition placeholder:text-slate-400 focus:border-[var(--brand-burgundy)] focus:ring-4 focus:ring-[var(--brand-burgundy)]/10";
 const choiceClass =
   "flex min-h-12 cursor-pointer items-start gap-3 rounded-xl border border-[var(--brand-border)] px-4 py-3 text-sm leading-6 text-[var(--brand-text)] transition hover:bg-[var(--brand-soft)]";
-
-function FieldNote({ children }: { children: React.ReactNode }) {
-  return <span className="mt-1 block text-xs font-normal leading-5 text-[var(--brand-muted)]">{children}</span>;
-}
 
 export function PrayerMentorSignupForm() {
   const [role, setRole] = useState<SignupRole>("mentor");
@@ -216,15 +210,6 @@ function MentorFields() {
             <input className={inputClass} name="lastName" autoComplete="family-name" maxLength={80} required />
           </label>
           <label className="text-sm font-semibold text-[var(--brand-navy)]">
-            Sex *
-            <select className={inputClass} name="sex" defaultValue="" required>
-              <option value="" disabled>Select one</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
-            <FieldNote>Used only to make same-sex mentor matches.</FieldNote>
-          </label>
-          <label className="text-sm font-semibold text-[var(--brand-navy)]">
             Mobile number *
             <input className={inputClass} name="mobile" type="tel" inputMode="tel" autoComplete="tel" maxLength={30} placeholder="(555) 555-5555" required />
           </label>
@@ -257,18 +242,6 @@ function MentorFields() {
       <section>
         <h3 className="text-lg font-semibold text-[var(--brand-navy)]">Your mentoring fit</h3>
         <div className="mt-4 grid gap-5">
-          <label className="text-sm font-semibold text-[var(--brand-navy)]">
-            What days and times are usually best for you? *
-            <textarea className={textareaClass} name="availability" maxLength={600} placeholder="For example: weekday evenings, Saturdays, or after Sunday worship." required />
-          </label>
-          <label className="text-sm font-semibold text-[var(--brand-navy)]">
-            Interests, hobbies, or activities you could share *
-            <textarea className={textareaClass} name="interests" maxLength={800} placeholder="Sports, music, academics, trades, arts, community service, career interests, and more." required />
-          </label>
-          <label className="text-sm font-semibold text-[var(--brand-navy)]">
-            Why would you like to serve as a prayer mentor? *
-            <textarea className={textareaClass} name="whyMentor" maxLength={1_000} required />
-          </label>
           <label className="text-sm font-semibold text-[var(--brand-navy)]">
             How many mentees could you support well? *
             <select className={inputClass} name="maxMentees" defaultValue="1" required>
@@ -341,15 +314,6 @@ function MenteeFields() {
             <input className={inputClass} name="lastName" autoComplete="family-name" maxLength={80} required />
           </label>
           <label className="text-sm font-semibold text-[var(--brand-navy)]">
-            Sex *
-            <select className={inputClass} name="sex" defaultValue="" required>
-              <option value="" disabled>Select one</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
-            <FieldNote>Used only to make same-sex mentor matches.</FieldNote>
-          </label>
-          <label className="text-sm font-semibold text-[var(--brand-navy)]">
             Age *
             <input className={inputClass} name="age" type="number" inputMode="numeric" min={12} max={19} required />
           </label>
@@ -369,24 +333,6 @@ function MenteeFields() {
           <label className="text-sm font-semibold text-[var(--brand-navy)] sm:col-span-2">
             Mentee email (optional)
             <input className={inputClass} name="menteeEmail" type="email" maxLength={160} />
-          </label>
-        </div>
-      </section>
-
-      <section>
-        <h3 className="text-lg font-semibold text-[var(--brand-navy)]">What would make a good match?</h3>
-        <div className="mt-4 grid gap-5">
-          <label className="text-sm font-semibold text-[var(--brand-navy)]">
-            Activities, interests, and extracurriculars *
-            <textarea className={textareaClass} name="interests" maxLength={1_000} placeholder="Sports, music, clubs, school subjects, hobbies, career interests, and more." required />
-          </label>
-          <label className="text-sm font-semibold text-[var(--brand-navy)]">
-            What kind of encouragement or support would be most meaningful? *
-            <textarea className={textareaClass} name="supportHopes" maxLength={1_000} placeholder="For example: prayer, school encouragement, someone attending games or performances, or help building confidence." required />
-          </label>
-          <label className="text-sm font-semibold text-[var(--brand-navy)]">
-            What days and times are usually best? *
-            <textarea className={textareaClass} name="availability" maxLength={600} required />
           </label>
         </div>
       </section>
