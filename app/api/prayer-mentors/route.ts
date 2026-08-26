@@ -45,7 +45,6 @@ export async function POST(request: Request) {
     const mobile = clean(body.mobile, 30);
     const email = clean(body.email, 160).toLowerCase();
     const preferredContact = clean(body.preferredContact, 20);
-    const churchRelationship = clean(body.churchRelationship, 100);
     const maxMentees = Number(clean(body.maxMentees, 1));
     const adultConfirmation = clean(body.adultConfirmation, 3);
     const screeningConsent = clean(body.screeningConsent, 3);
@@ -54,7 +53,7 @@ export async function POST(request: Request) {
     if (!mobile || !isValidPhone(mobile)) return badRequest("Please enter a complete mobile number.");
     if (email && !isValidEmail(email)) return badRequest("Please enter a valid email address.");
     if (preferredContact === "Email" && !email) return badRequest("Please add an email address or choose another contact method.");
-    if (!validPreferredContact.has(preferredContact) || !churchRelationship || ![1, 2, 3].includes(maxMentees)) {
+    if (!validPreferredContact.has(preferredContact) || ![1, 2, 3].includes(maxMentees)) {
       return badRequest("Please complete all required mentor fields.");
     }
     if (adultConfirmation !== "Yes" || screeningConsent !== "Yes" || mentorCommitment !== "Yes") {
@@ -67,7 +66,6 @@ export async function POST(request: Request) {
       mobile,
       email,
       preferredContact,
-      churchRelationship,
       maxMentees,
       adultConfirmation,
       screeningConsent,

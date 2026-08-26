@@ -226,16 +226,6 @@ function MentorFields() {
               <option value="Email">Email</option>
             </select>
           </label>
-          <label className="text-sm font-semibold text-[var(--brand-navy)] sm:col-span-2">
-            Relationship to David&apos;s Temple *
-            <select className={inputClass} name="churchRelationship" defaultValue="" required>
-              <option value="" disabled>Select one</option>
-              <option value="Member">Member</option>
-              <option value="Regular attendee">Regular attendee</option>
-              <option value="Connected through family or ministry">Connected through family or ministry</option>
-              <option value="Other">Other</option>
-            </select>
-          </label>
         </div>
       </section>
 
