@@ -42,7 +42,7 @@ export default function PrayerMentorsPage() {
             Prayer Mentors
           </h1>
           <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-white/82 sm:text-lg sm:leading-8">
-            We pair teens with caring adult mentors of the same sex for prayer, encouragement, and faithful support in all of life.
+            We pair teens with caring adult mentors for prayer, spiritual guidance, encouragement, and faithful support in all of life.
           </p>
         </div>
       </section>
