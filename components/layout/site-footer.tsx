@@ -7,6 +7,7 @@ const footerLinks = [
   { href: "/resources", label: "Resources" },
   { href: "/events", label: "Events" },
   { href: "/serve", label: "Join A Ministry" },
+  { href: "/prayer-mentors", label: "Prayer Mentors" },
   { href: "/resources#visit", label: "Contact" },
 ];
 
