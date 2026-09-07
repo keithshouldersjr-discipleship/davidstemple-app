@@ -63,6 +63,14 @@ Project Settings → Environment Variables
 
 After adding them, redeploy the project so production can read from Supabase.
 
+### Prayer Mentor signup spreadsheet
+
+The `/prayer-mentors` page posts mentor and mentee signups to the Google Sheet webhook in
+`scripts/prayer-mentor-webhook.gs`. Bind that script to the Prayer Mentor Program workbook,
+set its `PRAYER_MENTOR_WEBHOOK_SECRET` script property, deploy it as a web app, and add the
+deployment URL and matching secret to `PRAYER_MENTOR_SHEET_WEBHOOK_URL` and
+`PRAYER_MENTOR_SHEET_WEBHOOK_SECRET` in Vercel.
+
 ## Production Build
 
 ```bash
