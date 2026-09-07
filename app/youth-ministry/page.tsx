@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, BookOpenCheck, CalendarDays, GraduationCap, Megaphone } from "lucide-react";
+import { ArrowDown, ArrowRight, BarChart3, BookOpenCheck, CalendarDays, ClipboardCheck, GraduationCap, LockKeyhole, Megaphone } from "lucide-react";
 import { ScheduleTable } from "@/components/youth-ministry/schedule-table";
 import { teachingSchedules, youthMinistryAnnouncements } from "@/content/youth-ministry";
 
@@ -42,6 +42,10 @@ export default function YouthMinistryPage() {
               <a href="#announcements" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/45 bg-white/10 px-6 text-sm font-semibold !text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
                 Ministry announcements
               </a>
+              <Link href="/youth-ministry/attendance" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/45 bg-white/10 px-6 text-sm font-semibold !text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                Teacher tools
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
             </div>
           </div>
           <div className="relative min-h-72 overflow-hidden rounded-3xl shadow-2xl shadow-slate-950/30 sm:min-h-96">
@@ -88,6 +92,33 @@ export default function YouthMinistryPage() {
               <h3 className="mt-3 text-xl font-semibold text-[var(--brand-navy)]">One dependable place for future updates</h3>
               <p className="mt-3 leading-7 text-[var(--brand-muted)]">New announcements can be added here as the Christian Education ministry grows and the team’s needs change.</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="ministry-tools" className="scroll-mt-24 bg-[var(--brand-soft)]">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="mb-7 max-w-3xl space-y-3">
+            <p className="flex items-center gap-2 text-sm font-medium uppercase tracking-[0.22em] text-[var(--brand-burgundy)]">
+              <LockKeyhole className="h-4 w-4" aria-hidden="true" />
+              Teacher & leader tools
+            </p>
+            <h2 className="text-3xl font-semibold text-[var(--brand-navy)]">Care for the class and see the impact</h2>
+            <p className="text-base leading-7 text-[var(--brand-muted)]">Sign in with your Watch Care church account. Teachers see the classes assigned to them, while pastors and administrators can support the whole ministry.</p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            <Link href="/youth-ministry/attendance" className="group rounded-3xl border border-[var(--brand-border)] bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--brand-burgundy)]/35 hover:shadow-md">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--brand-burgundy-soft)] text-[var(--brand-burgundy)]"><ClipboardCheck className="h-6 w-6" aria-hidden="true" /></div>
+              <h3 className="mt-5 text-xl font-semibold text-[var(--brand-navy)]">Take weekly attendance</h3>
+              <p className="mt-3 leading-7 text-[var(--brand-muted)]">Mark enrolled students present, add visitors, and save directly into the same shared record used by Watch Care.</p>
+              <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--brand-burgundy)]">Open attendance <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden="true" /></span>
+            </Link>
+            <Link href="/youth-ministry/reports" className="group rounded-3xl border border-[var(--brand-border)] bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--brand-burgundy)]/35 hover:shadow-md">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--brand-burgundy-soft)] text-[var(--brand-burgundy)]"><BarChart3 className="h-6 w-6" aria-hidden="true" /></div>
+              <h3 className="mt-5 text-xl font-semibold text-[var(--brand-navy)]">View ministry reports</h3>
+              <p className="mt-3 leading-7 text-[var(--brand-muted)]">Follow Week 1 through Week 4 each month and celebrate a full year of learning moments, faithful classes, and welcomed visitors.</p>
+              <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--brand-burgundy)]">See ministry impact <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden="true" /></span>
+            </Link>
           </div>
         </div>
       </section>
