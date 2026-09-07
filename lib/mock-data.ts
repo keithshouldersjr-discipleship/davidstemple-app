@@ -25,6 +25,16 @@ export const resources: Resource[] = [
     sortOrder: 3,
   },
   {
+    id: "youth-ministry",
+    title: "Youth Ministry Hub",
+    description: "Review teaching assignments and stay current with Christian Education youth ministry announcements.",
+    category: "Grow",
+    url: "/youth-ministry",
+    icon: "GraduationCap",
+    isActive: true,
+    sortOrder: 4,
+  },
+  {
     id: "upcoming-events",
     title: "Upcoming Events",
     description: "See what is coming up this month across worship, study, and ministry life.",

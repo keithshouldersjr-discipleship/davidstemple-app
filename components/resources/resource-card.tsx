@@ -6,6 +6,7 @@ import {
   BookOpen,
   CalendarDays,
   CheckCircle2,
+  GraduationCap,
   HandCoins,
   Heart,
   HeartHandshake,
@@ -27,6 +28,7 @@ import type { Resource } from "@/lib/types";
 const icons = {
   BookOpen,
   CalendarDays,
+  GraduationCap,
   HandCoins,
   Heart,
   HeartHandshake,
