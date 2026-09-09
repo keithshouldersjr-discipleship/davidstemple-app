@@ -76,13 +76,13 @@ export const resources: Resource[] = [
   },
   {
     id: "sermons",
-    title: "Sermons and Bible Studies",
-    description: "Grow through preaching, teaching, and Bible study resources.",
+    title: "From Welcome to Worship Bible Study",
+    description: "Prepare each week with Scripture, discussion questions, reflection, prayer, and the complete study guide.",
     category: "Grow",
-    url: "/resources#grow",
-    icon: "Mic",
+    url: "/study",
+    icon: "BookOpen",
     isActive: true,
-    sortOrder: 9,
+    sortOrder: 0,
   },
   {
     id: "vision",
