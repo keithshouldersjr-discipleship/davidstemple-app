@@ -54,11 +54,11 @@ export async function POST(request: Request) {
     ? [...new Set(body.interests.map((item) => clean(item, 80)).filter((item) => interestOptions.has(item)))]
     : [];
 
-  if (!firstName || !lastName || !mobile || !["Yes", "No"].includes(firstVisit) || !["Yes", "No"].includes(textOptIn)) {
+  if (!firstName || !lastName || !["Yes", "No"].includes(firstVisit) || !["Yes", "No"].includes(textOptIn)) {
     return NextResponse.json({ message: "Please complete all required fields." }, { status: 400 });
   }
 
-  if (mobile.replace(/\D/g, "").length < 10) {
+  if (mobile && mobile.replace(/\D/g, "").length < 10) {
     return NextResponse.json({ message: "Please enter a complete mobile number." }, { status: 400 });
   }
 
