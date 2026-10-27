@@ -35,6 +35,7 @@ function getEventsWithinDays(events: Event[], days: number) {
 
 export default async function Home() {
   // Restore the regular FYI announcement after the event, in the church's time zone.
+  // eslint-disable-next-line react-hooks/purity -- Server time is intentionally refreshed by this page's 5-minute revalidation.
   const friendsgivingIsActive = Date.now() < Date.parse("2026-11-23T00:00:00-06:00");
   const events = await getEvents();
   const featuredResources = resources.filter((resource) => resource.isActive).sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 6);
