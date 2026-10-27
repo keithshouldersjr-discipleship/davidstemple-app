@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { FyiEventsModal } from "@/components/events/fyi-events-modal";
+import { FriendsgivingExperience } from "@/components/events/friendsgiving-experience";
+import { FriendsgivingModal } from "@/components/events/friendsgiving-modal";
 import { HomeEventsPreview } from "@/components/events/home-events-preview";
 import { AskQuestionButton } from "@/components/home/ask-question-button";
 import { PlanVisitButton } from "@/components/home/plan-visit-button";
@@ -32,6 +34,8 @@ function getEventsWithinDays(events: Event[], days: number) {
 }
 
 export default async function Home() {
+  // Restore the regular FYI announcement after the event, in the church's time zone.
+  const friendsgivingIsActive = Date.now() < Date.parse("2026-11-23T00:00:00-06:00");
   const events = await getEvents();
   const featuredResources = resources.filter((resource) => resource.isActive).sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 6);
   const upcomingEvents = getEventsWithinDays(events, 90);
@@ -56,7 +60,11 @@ export default async function Home() {
 
   return (
     <main>
-      <FyiEventsModal events={upcomingEventItems} />
+      {friendsgivingIsActive ? (
+        <FriendsgivingModal><FriendsgivingExperience /></FriendsgivingModal>
+      ) : (
+        <FyiEventsModal events={upcomingEventItems} />
+      )}
       <section className="relative overflow-hidden bg-[var(--brand-navy)]">
         <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:px-6 md:grid-cols-[0.96fr_1.04fr] md:items-center lg:px-8 lg:py-12">
           <div className="space-y-7">
