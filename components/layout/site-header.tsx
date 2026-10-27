@@ -10,6 +10,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase";
 const navLinks = [
   { href: "/ask", label: "Ask" },
   { href: "/bulletin", label: "Bulletin" },
+  { href: "/youth-ministry", label: "Youth Ministry" },
   { href: "/resources", label: "Resources" },
   { href: "/events", label: "Events" },
   { href: "/serve", label: "Join A Ministry" },

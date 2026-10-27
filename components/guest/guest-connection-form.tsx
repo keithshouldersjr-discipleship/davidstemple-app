@@ -126,8 +126,8 @@ export function GuestConnectionForm() {
               <input className={inputClass} name="lastName" autoComplete="family-name" maxLength={80} required />
             </label>
             <label className="text-sm font-semibold text-[var(--brand-navy)]">
-              Mobile number *
-              <input className={inputClass} name="mobile" type="tel" inputMode="tel" autoComplete="tel" maxLength={30} placeholder="(555) 555-5555" required />
+              Mobile number (optional)
+              <input className={inputClass} name="mobile" type="tel" inputMode="tel" autoComplete="tel" maxLength={30} placeholder="(555) 555-5555" />
             </label>
             <label className="text-sm font-semibold text-[var(--brand-navy)]">
               Email address
