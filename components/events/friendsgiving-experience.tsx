@@ -50,7 +50,7 @@ export function FriendsgivingExperience() {
         <section className={styles.purpose}>
           <p className={styles.eyebrow}>Our central purpose</p>
           <h2>More than a gathering.<br /><em>An invitation to Jesus.</em></h2>
-          <p>To connect our community to Jesus and His church through personal invitations, meaningful worship, genuine hospitality, and intentional relationships that create opportunities for salvation and discipleship.</p>
+          <p>To connect our community to Jesus and His church through personal invitations, meaningful worship, genuine hospitality, and lasting relationships that create opportunities for salvation and discipleship.</p>
         </section>
 
         <section className={styles.win}>
