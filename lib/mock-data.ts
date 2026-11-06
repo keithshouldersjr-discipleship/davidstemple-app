@@ -75,6 +75,16 @@ export const resources: Resource[] = [
     sortOrder: 7,
   },
   {
+    id: "journey-through-james",
+    title: "Journey Through James",
+    description: "Builders Sunday School Class lessons through the book of James, with each study date, Scripture, reflection, and application.",
+    category: "Grow",
+    url: "/james",
+    icon: "BookOpen",
+    isActive: true,
+    sortOrder: -1,
+  },
+  {
     id: "sermons",
     title: "From Welcome to Worship Bible Study",
     description: "Prepare each week with Scripture, discussion questions, reflection, prayer, and the complete study guide.",
