@@ -10,6 +10,7 @@ import {
   Footprints,
   MessageCircleQuestion,
 } from "lucide-react";
+import { LessonInline, LessonParagraphs } from "@/components/bible-study/lesson-rich-text";
 import { PrintLessonButton } from "@/components/bible-study/print-lesson-button";
 import {
   formatStudyDate,
@@ -66,6 +67,10 @@ export default async function JamesLessonPage({ params }: LessonPageProps) {
   const { previous, next } = getAdjacentJamesLessons(lesson.number);
   const studyDate = formatStudyDate(lesson.studyDate);
   const lessonLabel = String(lesson.number).padStart(2, "0");
+  const reflectionLabel = lesson.reflectionLabel ?? "Reflection";
+  const notices = lesson.scriptureNotices ?? [jamesSeries.scriptureNotice];
+  const lessonPath = `davidstemple.app/${jamesSeries.slug}/${lesson.number}`;
+  const pdfTitle = `${jamesSeries.title} - Lesson ${lesson.number} - ${lesson.title}`;
 
   return (
     <main className="james-lesson pb-16">
@@ -83,6 +88,9 @@ export default async function JamesLessonPage({ params }: LessonPageProps) {
         />
 
         <div className="relative mx-auto max-w-3xl px-4 py-9 sm:px-6 sm:py-12 lg:px-8">
+          <p className="james-print-only text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-white/70">
+            David&rsquo;s Temple Missionary Baptist Church · {jamesSeries.eyebrow}
+          </p>
           <Link
             href={`/${jamesSeries.slug}`}
             className="james-no-print inline-flex items-center gap-2 text-sm font-medium text-white/75 transition hover:text-white"
@@ -121,7 +129,10 @@ export default async function JamesLessonPage({ params }: LessonPageProps) {
                 </time>
               </span>
             </div>
-            <PrintLessonButton className="text-white/80 underline decoration-white/30 underline-offset-4 transition hover:text-white hover:decoration-white" />
+            <PrintLessonButton
+              documentTitle={pdfTitle}
+              className="min-h-11 rounded-full border border-white/25 bg-white/10 px-5 py-2.5 text-white transition hover:bg-white/20"
+            />
           </div>
         </div>
       </section>
@@ -161,9 +172,15 @@ export default async function JamesLessonPage({ params }: LessonPageProps) {
         {/* ── Overview ────────────────────────────────────────── */}
         <section className="james-avoid-break space-y-4">
           <SectionLabel>Overview</SectionLabel>
-          <p className="james-overview text-xl leading-9 text-[var(--brand-navy)] sm:text-[1.35rem] sm:leading-10">
-            {lesson.overview}
-          </p>
+          <LessonParagraphs
+            text={lesson.overview}
+            className="james-overview text-xl leading-9 text-[var(--brand-navy)] sm:text-[1.35rem] sm:leading-10"
+          />
+          {lesson.keyIdea ? (
+            <blockquote className="james-key-idea mt-2 border-l-4 border-[var(--brand-burgundy)] bg-[var(--brand-burgundy-soft)] py-5 pl-6 pr-5 font-serif text-xl font-semibold leading-8 text-[var(--brand-navy)] sm:text-2xl sm:leading-9">
+              <LessonInline text={lesson.keyIdea} />
+            </blockquote>
+          ) : null}
         </section>
 
         {/* ── Outline ─────────────────────────────────────────── */}
@@ -212,20 +229,25 @@ export default async function JamesLessonPage({ params }: LessonPageProps) {
                   </div>
                 </div>
 
-                <p className="mt-6 text-base leading-8 text-[var(--brand-text)] sm:text-[1.05rem]">
-                  {point.body}
-                </p>
+                <div className="james-point-body mt-6 space-y-5">
+                  <LessonParagraphs
+                    text={point.body}
+                    className="text-base leading-8 text-[var(--brand-text)] sm:text-[1.05rem]"
+                  />
+                </div>
 
                 <div className="james-panels mt-7 grid gap-4 md:grid-cols-[1.15fr_1fr]">
                   <div className="james-avoid-break rounded-2xl bg-[var(--brand-soft)] p-5">
                     <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--brand-navy)]">
-                      <MessageCircleQuestion className="h-4 w-4 text-[var(--brand-burgundy)]" /> Reflection
+                      <MessageCircleQuestion className="h-4 w-4 text-[var(--brand-burgundy)]" /> {reflectionLabel}
                     </h3>
                     <ul className="mt-4 space-y-3.5">
                       {point.reflection.map((question) => (
                         <li key={question} className="flex gap-3 text-[0.95rem] leading-7 text-[var(--brand-text)]">
                           <span aria-hidden className="mt-[0.7rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--brand-navy)]/40" />
-                          {question}
+                          <span>
+                            <LessonInline text={question} />
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -239,7 +261,9 @@ export default async function JamesLessonPage({ params }: LessonPageProps) {
                       {point.application.map((step) => (
                         <li key={step} className="flex gap-3 text-[0.95rem] leading-7 text-[var(--brand-text)]">
                           <CheckCircle2 className="mt-1.5 h-4 w-4 shrink-0 text-[var(--brand-burgundy)]" />
-                          {step}
+                          <span>
+                            <LessonInline text={step} />
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -257,9 +281,20 @@ export default async function JamesLessonPage({ params }: LessonPageProps) {
             className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-[var(--brand-burgundy)]/30 blur-3xl"
           />
           <p className="relative text-xs font-semibold uppercase tracking-[0.22em] text-[#f2c4cf]">Conclusion</p>
-          <p className="james-conclusion-text relative mt-4 font-serif text-xl leading-9 sm:text-2xl sm:leading-[2.6rem]">
-            {lesson.conclusion}
-          </p>
+          <LessonParagraphs
+            text={lesson.conclusion}
+            className="james-conclusion-text relative mt-4 font-serif text-xl leading-9 sm:text-2xl sm:leading-[2.6rem]"
+          />
+          {lesson.conclusionScripture ? (
+            <figure className="james-conclusion-scripture relative mt-7 border-t border-white/15 pt-6">
+              <blockquote className="font-serif text-lg italic leading-8 text-white/90 sm:text-xl sm:leading-9">
+                {lesson.conclusionScripture.text}
+              </blockquote>
+              <figcaption className="mt-3 text-sm font-semibold uppercase tracking-[0.16em] text-[#f2c4cf]">
+                {lesson.conclusionScripture.reference} ({lesson.conclusionScripture.translation})
+              </figcaption>
+            </figure>
+          ) : null}
         </section>
 
         {/* ── Next Steps ──────────────────────────────────────── */}
@@ -269,7 +304,9 @@ export default async function JamesLessonPage({ params }: LessonPageProps) {
             {lesson.nextSteps.map((step) => (
               <li key={step} className="flex items-start gap-3 p-5 text-base leading-7 text-[var(--brand-text)]">
                 <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-[var(--brand-burgundy)]" />
-                {step}
+                <span>
+                  <LessonInline text={step} />
+                </span>
               </li>
             ))}
             {lesson.nextLessonPassage ? (
@@ -283,9 +320,25 @@ export default async function JamesLessonPage({ params }: LessonPageProps) {
           </ul>
         </section>
 
-        <p className="border-t border-[var(--brand-border)] pt-6 text-xs leading-5 text-[var(--brand-muted)]">
-          {jamesSeries.scriptureNotice}
-        </p>
+        <div className="james-no-print flex flex-col items-start gap-4 rounded-2xl border border-dashed border-[var(--brand-border)] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-[var(--brand-muted)]">
+            <span className="block font-semibold text-[var(--brand-navy)]">Want a paper copy for class?</span>
+            Print this lesson or save it as a PDF. It&rsquo;s formatted as a clean handout.
+          </p>
+          <PrintLessonButton
+            documentTitle={pdfTitle}
+            className="min-h-11 shrink-0 rounded-full bg-[var(--brand-burgundy)] px-5 py-2.5 text-white transition hover:bg-[#a20b31]"
+          />
+        </div>
+
+        <div className="james-notices space-y-2 border-t border-[var(--brand-border)] pt-6 text-xs leading-5 text-[var(--brand-muted)]">
+          {notices.map((notice) => (
+            <p key={notice}>{notice}</p>
+          ))}
+          <p className="james-print-only pt-2 font-semibold text-[var(--brand-navy)]">
+            Read online at {lessonPath}
+          </p>
+        </div>
 
         <nav className="james-no-print grid gap-3 sm:grid-cols-2" aria-label="Lesson navigation">
           {previous ? (

@@ -446,14 +446,85 @@ a {
 }
 
 /* Journey Through James — clean printed handouts */
+.james-print-only {
+  display: none;
+}
+
+@page james-handout {
+  size: letter;
+  margin: 0.5in 0.55in 0.6in;
+
+  @bottom-left {
+    content: "Journey Through James · davidstemple.app/james";
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-size: 8pt;
+    color: #6b7280;
+  }
+
+  @bottom-right {
+    content: "Page " counter(page) " of " counter(pages);
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-size: 8pt;
+    color: #6b7280;
+  }
+}
+
 @media print {
   .james-no-print {
     display: none !important;
   }
 
+  .james-print-only {
+    display: block !important;
+  }
+
   .james-lesson {
+    page: james-handout;
     padding-bottom: 0 !important;
     font-size: 11pt;
+  }
+
+  .james-lesson-header .james-print-only {
+    margin-bottom: 10px;
+  }
+
+  .james-lesson-header > div > div:last-child {
+    margin-top: 16px !important;
+  }
+
+  .james-key-idea {
+    font-size: 11.5pt !important;
+    line-height: 1.45 !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+    break-inside: avoid;
+  }
+
+  .james-conclusion-scripture {
+    margin-top: 14px !important;
+    padding-top: 12px !important;
+  }
+
+  .james-conclusion-scripture blockquote {
+    font-size: 11.5pt !important;
+    line-height: 1.6 !important;
+  }
+
+  .james-point-body {
+    margin-top: 12px !important;
+  }
+
+  .james-point-body > * + * {
+    margin-top: 8px !important;
+  }
+
+  .james-point-body > p {
+    font-size: 10pt !important;
+    line-height: 1.55 !important;
+  }
+
+  .james-notices {
+    break-inside: avoid;
   }
 
   .james-lesson .shadow-sm,
@@ -474,18 +545,31 @@ a {
     padding-top: 18px !important;
   }
 
-  .james-lesson .space-y-12 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 22px !important;
+  /* Tailwind v4 spaces siblings with margin-block-end. */
+  .james-lesson .space-y-12 > :not(:last-child) {
+    margin-block-end: 20px !important;
   }
 
+  /* Points flow as open sections in print so a long point can continue
+     onto the next page without a broken card outline. */
   .james-point {
-    padding: 18px 20px !important;
+    padding: 14px 0 0 !important;
+    border: 0 !important;
+    border-top: 1.5px solid var(--brand-border) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
   }
 
-  .james-point > p {
-    margin-top: 12px !important;
-    font-size: 10.5pt !important;
-    line-height: 1.6 !important;
+  .james-outline ol > :not(:last-child) {
+    margin-block-end: 18px !important;
+  }
+
+  .james-point .font-serif.text-5xl {
+    font-size: 30pt !important;
+  }
+
+  .james-point h2 {
+    font-size: 15pt !important;
   }
 
   .james-outline {
@@ -494,18 +578,22 @@ a {
   }
 
   .james-scripture {
-    font-size: 11.5pt !important;
-    line-height: 1.75 !important;
+    font-size: 12pt !important;
+    line-height: 1.7 !important;
   }
 
   .james-overview {
-    font-size: 12.5pt !important;
-    line-height: 1.65 !important;
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+  }
+
+  .james-conclusion {
+    padding: 18px 22px !important;
   }
 
   .james-conclusion-text {
-    font-size: 13pt !important;
-    line-height: 1.7 !important;
+    font-size: 12pt !important;
+    line-height: 1.6 !important;
   }
 
   .james-panels {
@@ -513,9 +601,21 @@ a {
     margin-top: 14px !important;
   }
 
+  .james-panels > div {
+    padding: 12px 14px !important;
+  }
+
+  .james-panels ul {
+    margin-top: 8px !important;
+  }
+
+  .james-panels ul > :not(:last-child) {
+    margin-block-end: 6px !important;
+  }
+
   .james-panels li {
-    font-size: 9.5pt !important;
-    line-height: 1.5 !important;
+    font-size: 9pt !important;
+    line-height: 1.45 !important;
   }
 
   .james-lesson h2 + p,
