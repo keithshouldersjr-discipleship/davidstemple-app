@@ -67,7 +67,6 @@ export default async function JamesLessonPage({ params }: LessonPageProps) {
   const { previous, next } = getAdjacentJamesLessons(lesson.number);
   const studyDate = formatStudyDate(lesson.studyDate);
   const lessonLabel = String(lesson.number).padStart(2, "0");
-  const reflectionLabel = lesson.reflectionLabel ?? "Reflection";
   const notices = lesson.scriptureNotices ?? [jamesSeries.scriptureNotice];
   const lessonPath = `davidstemple.app/${jamesSeries.slug}/${lesson.number}`;
   const pdfTitle = `${jamesSeries.title} - Lesson ${lesson.number} - ${lesson.title}`;
@@ -239,7 +238,7 @@ export default async function JamesLessonPage({ params }: LessonPageProps) {
                 <div className="james-panels mt-7 grid gap-4 md:grid-cols-[1.15fr_1fr]">
                   <div className="james-avoid-break rounded-2xl bg-[var(--brand-soft)] p-5">
                     <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--brand-navy)]">
-                      <MessageCircleQuestion className="h-4 w-4 text-[var(--brand-burgundy)]" /> {reflectionLabel}
+                      <MessageCircleQuestion className="h-4 w-4 text-[var(--brand-burgundy)]" /> Reflection
                     </h3>
                     <ul className="mt-4 space-y-3.5">
                       {point.reflection.map((question) => (

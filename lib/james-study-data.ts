@@ -30,8 +30,6 @@ export type JamesLesson = {
   overview: string;
   /** Optional pull quote Keith places right after the overview. */
   keyIdea?: string;
-  /** Heading Keith uses for each point's question list. Defaults to "Reflection". */
-  reflectionLabel?: string;
   outline: JamesOutlinePoint[];
   conclusion: string;
   /** Optional Scripture Keith quotes at the end of the conclusion. */
@@ -178,7 +176,6 @@ export const jamesLessons: JamesLesson[] = [
       "James is encouraging us to give attention to the practice of listening as if our lives depend on it. Listening has become a lost art in our society. We can’t pay attention very long anymore because we are constantly bombarded with new information. Our newsfeeds are busy. Our lives are busy. Our minds are busy. The busyness of our lives and emotions has trained us to react, not to listen. James makes it very clear that in order for our spiritual lives to flourish, we must recover the art of listening well. Specifically, we must allow God’s word to speak to us in the midst of a busy world. We don’t listen to earn God’s love. We listen because God has already given us new life through his word (James 1:18), and that same word keeps growing us.",
     keyIdea:
       "We must learn to listen as if our lives depend on it, because listening to God’s word leads to a thriving spiritual life.",
-    reflectionLabel: "Questions",
     outline: [
       {
         heading: "Hurry Up & Listen",
