@@ -71,6 +71,16 @@ set its `PRAYER_MENTOR_WEBHOOK_SECRET` script property, deploy it as a web app, 
 deployment URL and matching secret to `PRAYER_MENTOR_SHEET_WEBHOOK_URL` and
 `PRAYER_MENTOR_SHEET_WEBHOOK_SECRET` in Vercel.
 
+### Friendsgiving reflection spreadsheet
+
+The unlisted `/friendsgiving-survey` page saves anonymous reflections in Supabase.
+Run `supabase/friendsgiving-survey.sql`, set the matching write and export secret
+hashes in `private.friendsgiving_survey_secrets`, and add the server-only secrets
+`FRIENDSGIVING_SURVEY_WRITE_SECRET`, `FRIENDSGIVING_SURVEY_EXPORT_SECRET`, and
+`FRIENDSGIVING_SURVEY_EXPORT_KEY` in Vercel. The Google Sheet uses `IMPORTDATA`
+against the private `/api/friendsgiving-survey/export` CSV feed so responses remain
+reviewable in spreadsheet form without exposing the table to public reads.
+
 ## Production Build
 
 ```bash
