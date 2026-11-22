@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Heart, Lightbulb, MessageCircleHeart } from "lucide-react";
 import { FriendsgivingSurveyForm } from "@/components/events/friendsgiving-survey-form";
 
 export const metadata: Metadata = {
@@ -8,27 +7,6 @@ export const metadata: Metadata = {
   description: "Share a brief reflection after Friendsgiving Worship at David's Temple.",
   robots: { index: false, follow: false },
 };
-
-const reflectionPrompts = [
-  {
-    icon: Heart,
-    number: "01",
-    title: "Praise",
-    description: "One thing you are praising God for.",
-  },
-  {
-    icon: MessageCircleHeart,
-    number: "02",
-    title: "Consider",
-    description: "One thing we should consider doing differently.",
-  },
-  {
-    icon: Lightbulb,
-    number: "03",
-    title: "Learn",
-    description: "One thing you learned from today.",
-  },
-];
 
 export default function FriendsgivingSurveyPage() {
   return (
@@ -58,24 +36,7 @@ export default function FriendsgivingSurveyPage() {
       </section>
 
       <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <div className="grid gap-4 sm:grid-cols-3">
-          {reflectionPrompts.map(({ icon: Icon, number, title, description }) => (
-            <article key={title} className="rounded-2xl border border-[var(--brand-border)] bg-white p-5 shadow-sm shadow-slate-900/5">
-              <div className="flex items-center justify-between">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-burgundy-soft)] text-[var(--brand-burgundy)]">
-                  <Icon className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <span className="text-sm font-semibold tracking-[0.16em] text-slate-300">{number}</span>
-              </div>
-              <h2 className="mt-4 text-lg font-semibold text-[var(--brand-navy)]">{title}</h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--brand-muted)]">{description}</p>
-            </article>
-          ))}
-        </div>
-
-        <div className="mt-8">
-          <FriendsgivingSurveyForm />
-        </div>
+        <FriendsgivingSurveyForm />
       </section>
     </main>
   );
