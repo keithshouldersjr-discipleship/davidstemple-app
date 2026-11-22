@@ -62,6 +62,7 @@ export function GuestConnectionForm() {
       prayerRequest: formData.get("prayerRequest"),
       interests: formData.getAll("interests"),
       howHeard: formData.get("howHeard"),
+      invitedBy: formData.get("invitedBy"),
       website: formData.get("website"),
     };
 
@@ -175,6 +176,17 @@ export function GuestConnectionForm() {
               <option value="">Select one</option>
               {heardOptions.map((option) => <option key={option}>{option}</option>)}
             </select>
+          </label>
+
+          <label className="block text-sm font-semibold text-[var(--brand-navy)]">
+            Who invited you? (optional)
+            <input
+              className={inputClass}
+              name="invitedBy"
+              maxLength={160}
+              autoComplete="off"
+              placeholder="Name of the person who invited you"
+            />
           </label>
 
           <fieldset>

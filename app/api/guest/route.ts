@@ -10,6 +10,7 @@ type GuestBody = {
   prayerRequest?: unknown;
   interests?: unknown;
   howHeard?: unknown;
+  invitedBy?: unknown;
   website?: unknown;
 };
 
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
   const textOptIn = clean(body.textOptIn, 3);
   const prayerRequest = clean(body.prayerRequest, 1_500);
   const howHeard = clean(body.howHeard, 80);
+  const invitedBy = clean(body.invitedBy, 160).replace(/[\r\n]+/g, " ");
   const interests = Array.isArray(body.interests)
     ? [...new Set(body.interests.map((item) => clean(item, 80)).filter((item) => interestOptions.has(item)))]
     : [];
@@ -96,7 +98,9 @@ export async function POST(request: Request) {
       textOptIn,
       prayerRequest,
       interests,
-      howHeard,
+      // The deployed spreadsheet webhook saves and emails this existing field.
+      // Keep the inviter here so no separate Apps Script rollout is required.
+      howHeard: [howHeard, invitedBy ? `Invited by: ${invitedBy}` : ""].filter(Boolean).join(" · "),
     }),
     cache: "no-store",
   }).catch((error) => {
